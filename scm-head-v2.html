@@ -1,0 +1,3570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Return Recovery Dashboard – UniReco</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════════
+     DESIGN TOKENS  ·  4px grid  ·  Inter
+  ═══════════════════════════════════════════════ */
+  :root {
+    /* Neutral scale */
+    --c-white:  #ffffff;
+    --c-gray-25: #fafafa;
+    --c-gray-50: #f8fafc;
+    --c-gray-100:#f1f5f9;
+    --c-gray-200:#e2e8f0;
+    --c-gray-300:#cbd5e1;
+    --c-gray-400:#94a3b8;
+    --c-gray-500:#64748b;
+    --c-gray-600:#475569;
+    --c-gray-700:#334155;
+    --c-gray-800:#1e293b;
+    --c-gray-900:#0f172a;
+
+    /* Status */
+    --c-red-50:    #fff1f2;
+    --c-red-100:   #ffe4e6;
+    --c-red-200:   #fecaca;
+    --c-red-600:   #dc2626;
+    --c-red-700:   #b91c1c;
+    --c-red-800:   #991b1b;
+
+    --c-amber-50:  #fffbeb;
+    --c-amber-100: #fef3c7;
+    --c-amber-200: #fde68a;
+    --c-amber-600: #d97706;
+    --c-amber-700: #b45309;
+    --c-amber-800: #92400e;
+
+    --c-green-50:  #f0fdf4;
+    --c-green-100: #dcfce7;
+    --c-green-600: #16a34a;
+    --c-green-700: #15803d;
+
+    --c-blue-50:   #eff6ff;
+    --c-blue-100:  #dbeafe;
+    --c-blue-600:  #2563eb;
+    --c-blue-700:  #1d4ed8;
+
+    --c-violet-50:  #f5f3ff;
+    --c-violet-100: #ede9fe;
+    --c-violet-600: #7c3aed;
+
+    /* Semantic aliases */
+    --bg:           var(--c-gray-100);
+    --surface:      var(--c-white);
+    --border:       var(--c-gray-200);
+    --border-subtle:var(--c-gray-100);
+
+    --text-1: var(--c-gray-900);   /* primary */
+    --text-2: var(--c-gray-600);   /* secondary */
+    --text-3: var(--c-gray-400);   /* tertiary / placeholder */
+    --text-link: var(--c-blue-600);
+
+    --status-red:   var(--c-red-600);
+    --status-amber: var(--c-amber-600);
+    --status-green: var(--c-green-600);
+
+    /* Spacing — 4px base */
+    --s1:  4px;
+    --s2:  8px;
+    --s3: 12px;
+    --s4: 16px;
+    --s5: 20px;
+    --s6: 24px;
+
+    /* Type scale */
+    --t-xs:   10px;
+    --t-sm:   12px;
+    --t-md:   13px;
+    --t-base: 14px;
+    --t-lg:   16px;
+    --t-xl:   20px;
+    --t-2xl:  24px;
+    --t-3xl:  28px;
+
+    /* Radii */
+    --r-sm: 4px;
+    --r-md: 6px;
+    --r-lg: 8px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.08), 0 1px 3px rgba(15,23,42,.04);
+    --shadow-lg: 0 8px 24px rgba(15,23,42,.10), 0 2px 6px rgba(15,23,42,.04);
+    --shadow-flyout: -2px 0 16px rgba(15,23,42,.07);
+
+    /* Motion */
+    --ease: .14s ease;
+    --ease-panel: .22s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :focus-visible { outline: 2px solid var(--c-blue-600); outline-offset: 2px; border-radius: 2px; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: var(--t-sm);
+    color: var(--text-1);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 28px 32px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ══════════════════════════════
+     PAGE LAYOUT
+  ══════════════════════════════ */
+  .page-header {
+    max-width: 1280px; margin: 0 auto 20px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .page-title  { font-size: var(--t-xl); font-weight: 700; letter-spacing: -.02em; }
+  .page-sub    { font-size: var(--t-xs); color: var(--text-3); margin-top: 2px; }
+  .page-refresh{ font-size: var(--t-xs); color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+
+  .page-body {
+    max-width: 1280px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 296px;
+    gap: 16px; align-items: start;
+  }
+  .widgets-col { min-width: 0; }
+
+  /* ══════════════════════════════
+     WIDGET SHELL
+  ══════════════════════════════ */
+  .widget {
+    margin-bottom: 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); overflow: hidden;
+  }
+  .widget-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: var(--s4) var(--s6); border-bottom: 1px solid var(--border); gap: var(--s4);
+  }
+  .header-title {
+    font-size: var(--t-base); font-weight: 600; color: var(--text-1);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .header-sub  { font-size: var(--t-xs); color: var(--text-3); margin-top: 2px; }
+  .header-right{ display: flex; flex-direction: column; align-items: flex-end; gap: var(--s1); flex-shrink: 0; }
+
+  .refresh-ts {
+    font-size: var(--t-xs); color: var(--text-3); font-family: 'JetBrains Mono', monospace;
+    cursor: default; position: relative; transition: color var(--ease);
+  }
+  .refresh-ts:hover { color: var(--text-2); }
+  .ts-tooltip {
+    display: none; position: absolute; right: 0; top: 20px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+    padding: var(--s2) var(--s3); font-size: var(--t-xs); color: var(--text-2);
+    white-space: nowrap; box-shadow: var(--shadow-md); z-index: 10; font-family: 'Inter', sans-serif;
+  }
+  .refresh-ts:hover .ts-tooltip { display: block; }
+
+  .info-icon, .rda-info-btn {
+    width: 16px; height: 16px; border-radius: 50%; background: var(--c-gray-100); color: var(--text-2);
+    font-size: 9px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; border: none; font-family: 'Inter', sans-serif; transition: background var(--ease);
+  }
+  .info-icon:hover, .rda-info-btn:hover { background: var(--c-gray-200); }
+
+  /* ══════════════════════════════
+     UNIFIED BUTTON SYSTEM
+  ══════════════════════════════ */
+  /* Base — all interactive buttons inherit from here via specific class */
+  .btn {
+    display: inline-flex; align-items: center; gap: var(--s1);
+    padding: 6px var(--s3); border-radius: var(--r-md);
+    font-size: var(--t-xs); font-weight: 600; font-family: 'Inter', sans-serif;
+    cursor: pointer; border: 1px solid; white-space: nowrap; line-height: 1;
+    text-decoration: none; transition: background var(--ease), border-color var(--ease);
+  }
+  /* Variants */
+  .btn-solid  { background: var(--c-gray-900); color: #fff; border-color: var(--c-gray-900); }
+  .btn-solid:hover { background: var(--c-gray-800); }
+  .btn-ghost  { background: var(--surface); color: var(--text-2); border-color: var(--border); }
+  .btn-ghost:hover { background: var(--c-gray-50); color: var(--text-1); }
+  .btn-link   { background: none; border-color: transparent; color: var(--text-link); padding: 0; }
+  .btn-link:hover { text-decoration: underline; }
+  /* Semantic action buttons */
+  .btn-mail      { background: var(--surface); color: #1a73e8; border-color: #aac9f7; }
+  .btn-mail:hover { background: var(--c-blue-50); }
+  .btn-wa        { background: var(--surface); color: #1a9e4a; border-color: #8ed8a9; }
+  .btn-wa:hover  { background: var(--c-green-50); }
+  .btn-portal    { background: var(--surface); color: var(--c-violet-600); border-color: #c4b5fd; }
+  .btn-portal:hover { background: var(--c-violet-50); }
+  .btn-danger    { background: var(--surface); color: var(--c-red-700); border-color: var(--c-red-200); }
+  .btn-danger:hover { background: var(--c-red-50); }
+  .btn-copy      { background: var(--surface); color: var(--text-2); border-color: var(--c-gray-300); }
+  .btn-copy:hover{ background: var(--c-gray-100); }
+  /* Size modifier */
+  .btn-sm { padding: 5px var(--s2); font-size: 10px; }
+  .btn-md { padding: 8px var(--s4); font-size: var(--t-sm); }
+
+  /* ══════════════════════════════
+     UNIFIED BADGE SYSTEM
+  ══════════════════════════════ */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 7px; border-radius: var(--r-sm);
+    font-size: var(--t-xs); font-weight: 600; white-space: nowrap;
+  }
+  .badge-red    { background: var(--c-red-50);    color: var(--c-red-700); }
+  .badge-amber  { background: var(--c-amber-50);  color: var(--c-amber-700); }
+  .badge-green  { background: var(--c-green-50);  color: var(--c-green-700); }
+  .badge-neutral{ background: var(--c-gray-100);  color: var(--text-2); }
+  .badge-blue   { background: var(--c-blue-50);   color: var(--c-blue-700); }
+
+  /* ══════════════════════════════
+     OVERLAY (shared)
+  ══════════════════════════════ */
+  .overlay, .rda-flyout-overlay, .cop-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,.28); z-index: 100;
+  }
+  .overlay.open, .rda-flyout-overlay.open, .cop-overlay.open { display: block; }
+
+  /* Toast (shared) */
+  .rda-toast, .shared-toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: var(--c-gray-900); color: #fff; padding: 9px var(--s5);
+    border-radius: var(--r-lg); font-size: var(--t-sm); font-weight: 500;
+    z-index: 1100; opacity: 0; transition: opacity .18s; pointer-events: none;
+    box-shadow: var(--shadow-md);
+  }
+  .rda-toast.show, .shared-toast.show { opacity: 1; }
+
+  /* Lang toggle (shared) */
+  .flyout-lang-toggle, .rda-lang-toggle {
+    display: flex; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden;
+  }
+  .flyout-lang-btn, .rda-lang-btn {
+    padding: 4px 10px; font-size: var(--t-xs); font-weight: 600;
+    cursor: pointer; background: var(--surface); color: var(--text-3);
+    border: none; font-family: 'Inter', sans-serif;
+    transition: background var(--ease), color var(--ease);
+  }
+  .flyout-lang-btn:first-child, .rda-lang-btn:first-child { border-right: 1px solid var(--border); }
+  .flyout-lang-btn.active, .rda-lang-btn.active { background: var(--c-gray-900); color: #fff; }
+
+  /* Close button (shared) */
+  .flyout-close, .rda-flyout-close {
+    width: 28px; height: 28px; border-radius: var(--r-md);
+    border: 1px solid var(--border); background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 13px; color: var(--text-3);
+    transition: all var(--ease); flex-shrink: 0;
+  }
+  .flyout-close:hover, .rda-flyout-close:hover { background: var(--c-gray-100); color: var(--text-1); }
+
+  /* ══════════════════════════════
+     SUMMARY WIDGET
+  ══════════════════════════════ */
+  .summary-grid { display: grid; grid-template-columns: repeat(4,1fr); }
+  .summary-card {
+    padding: var(--s5) var(--s6); border-right: 1px solid var(--border);
+    border-top: 3px solid transparent;
+    cursor: pointer; transition: background var(--ease);
+  }
+  .summary-card:last-child { border-right: none; }
+  .summary-card:hover { background: var(--c-gray-50); }
+  /* Urgency accent — top border signals priority at a glance */
+  .summary-card.urg-warn     { border-top-color: var(--c-amber-600); }
+  .summary-card.urg-critical { border-top-color: var(--c-red-600); }
+  .summary-card-label {
+    font-size: var(--t-xs); color: var(--text-3); font-weight: 500;
+    text-transform: uppercase; letter-spacing: .05em; margin-bottom: var(--s2);
+  }
+  .summary-card-value {
+    font-size: var(--t-3xl); font-weight: 700; letter-spacing: -.03em; line-height: 1; margin-bottom: var(--s2);
+  }
+  .summary-card-value.orange   { color: var(--c-amber-700); }
+  .summary-card-value.amber    { color: var(--c-amber-700); }
+  .summary-card-value.red      { color: var(--c-red-700); }
+  .summary-card-value.dark-red { color: var(--c-red-800); }
+  .summary-card-cta {
+    font-size: var(--t-xs); font-weight: 600; color: var(--text-link);
+    display: inline-flex; align-items: center; gap: 3px;
+    cursor: pointer; background: none; border: none; font-family: 'Inter', sans-serif; padding: 0;
+  }
+  .summary-card-cta:hover { text-decoration: underline; }
+
+  /* ══════════════════════════════
+     RDA — RETURN DELIVERY ASSURANCE
+  ══════════════════════════════ */
+  .rda-info-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200; background: rgba(15,23,42,.28);
+  }
+  .rda-info-overlay.open { display: flex; align-items: flex-start; justify-content: center; padding-top: 120px; }
+  .rda-info-panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--s5) var(--s6); max-width: 480px; width: 100%;
+    box-shadow: var(--shadow-lg); position: relative;
+  }
+  .rda-info-close {
+    position: absolute; top: var(--s3); right: var(--s4); font-size: var(--t-md);
+    color: var(--text-3); cursor: pointer; padding: 2px var(--s2); border-radius: var(--r-sm);
+    transition: all var(--ease);
+  }
+  .rda-info-close:hover { background: var(--c-gray-100); color: var(--text-1); }
+  .rda-info-title { font-size: var(--t-base); font-weight: 700; margin-bottom: var(--s3); }
+  .rda-info-body p { font-size: var(--t-sm); color: var(--text-2); line-height: 1.6; margin-bottom: var(--s4); }
+  .rda-gap-def {
+    margin-bottom: var(--s3); padding: var(--s3) var(--s4);
+    background: var(--c-gray-50); border-radius: var(--r-md); border: 1px solid var(--border);
+  }
+  .rda-gap-def:last-child { margin-bottom: 0; }
+  .rda-gap-label { font-size: var(--t-xs); font-weight: 700; margin-bottom: var(--s1); }
+  .rda-gap-text  { font-size: var(--t-xs); color: var(--text-2); line-height: 1.5; }
+
+  /* Gap KPI cards — white, coloured top-border accent */
+  .rda-gap-cards { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border); }
+  .rda-gap-card {
+    padding: var(--s5) var(--s6); cursor: pointer; transition: background var(--ease);
+    border-right: 1px solid var(--border); border-top: 3px solid transparent;
+  }
+  .rda-gap-card:last-child { border-right: none; }
+  .rda-gap-card:hover { background: var(--c-gray-50); }
+  .rda-gap-card.gap1 { border-top-color: var(--c-amber-600); }
+  .rda-gap-card.gap2 { border-top-color: var(--c-red-600); }
+  .rda-gap-card-label {
+    font-size: var(--t-xs); font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--text-3); margin-bottom: var(--s4);
+  }
+  .rda-gap-card.gap1 .rda-gap-card-label { color: var(--c-amber-700); }
+  .rda-gap-card.gap2 .rda-gap-card-label { color: var(--c-red-700); }
+  .rda-gap-body    { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); }
+  .rda-gap-metrics { display: flex; align-items: center; }
+  .rda-gap-metric  { padding-right: var(--s5); }
+  .rda-gap-divider { width: 1px; height: 36px; background: var(--border); margin-right: var(--s5); flex-shrink: 0; }
+  .rda-gap-num     { font-size: var(--t-3xl); font-weight: 700; letter-spacing: -.03em; color: var(--text-1); line-height: 1; }
+  .rda-val-amber   { color: var(--c-amber-800); }
+  .rda-val-red     { color: var(--c-red-800); }
+  .rda-gap-unit    { font-size: var(--t-xs); color: var(--text-3); margin-top: 3px; }
+  .rda-gap-cta {
+    display: inline-flex; align-items: center; gap: var(--s1);
+    padding: 5px var(--s3); border-radius: var(--r-md); font-size: var(--t-xs); font-weight: 600;
+    font-family: 'Inter', sans-serif; border: 1px solid; cursor: pointer; transition: all var(--ease);
+    background: var(--surface);
+  }
+  .gap1-cta { border-color: var(--c-amber-200); color: var(--c-amber-800); }
+  .gap1-cta:hover { background: var(--c-amber-50); }
+  .gap2-cta { border-color: var(--c-red-200);   color: var(--c-red-700); }
+  .gap2-cta:hover { background: var(--c-red-50); }
+
+  /* Open gaps */
+  .rda-open-gaps {}
+  .rda-open-gaps-header {
+    display: flex; align-items: center; gap: var(--s3);
+    padding: var(--s3) var(--s6); border-bottom: 1px solid var(--border-subtle);
+  }
+  .rda-section-label { font-size: var(--t-sm); font-weight: 600; }
+  .rda-section-hint  { font-size: var(--t-xs); color: var(--text-3); }
+  .rda-gaps-grid  { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border-subtle); }
+  .rda-gaps-col   { border-right: 1px solid var(--border); overflow: hidden; }
+  .rda-gaps-col:last-child { border-right: none; }
+  .rda-gaps-col-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--s2) var(--s4); border-bottom: 1px solid var(--border-subtle); background: var(--c-gray-50);
+  }
+  .rda-gaps-col-title { font-size: var(--t-xs); font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .05em; }
+  .rda-gaps-col-count { font-size: var(--t-xs); color: var(--text-3); }
+  .rda-gaps-col-note  {
+    padding: var(--s1) var(--s4); font-size: var(--t-xs); color: var(--text-3);
+    background: var(--c-gray-50); border-bottom: 1px solid var(--border-subtle); font-style: italic;
+  }
+  .rda-issue-row {
+    display: flex; align-items: center; gap: var(--s3);
+    padding: var(--s3) var(--s4); border-bottom: 1px solid var(--border-subtle);
+    cursor: pointer; transition: background var(--ease);
+  }
+  .rda-issue-row:hover { background: var(--c-gray-50); }
+  .rda-issue-row:last-of-type { border-bottom: none; }
+  .rda-issue-name { flex: 1; min-width: 0; }
+  .rda-issue-name-main { font-size: var(--t-sm); font-weight: 600; }
+  .rda-issue-name-sub  { font-size: var(--t-xs); color: var(--text-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rda-issue-items {
+    font-size: var(--t-xs); font-weight: 600; padding: 2px var(--s2); border-radius: var(--r-sm);
+    background: var(--c-gray-100); color: var(--text-2); white-space: nowrap; flex-shrink: 0;
+  }
+  .rda-issue-trend { display: flex; flex-direction: column; align-items: flex-end; white-space: nowrap; flex-shrink: 0; }
+  .rda-issue-trend-label { font-size: var(--t-xs); font-weight: 700; }
+  .rda-issue-trend-sub   { font-size: 9px; color: var(--text-3); }
+  .rda-issue-trend.worse  .rda-issue-trend-label { color: var(--c-red-600); }
+  .rda-issue-trend.better .rda-issue-trend-label { color: var(--c-green-600); }
+  .rda-issue-trend.flat   .rda-issue-trend-label { color: var(--text-3); }
+  .rda-issue-val { font-size: var(--t-md); font-weight: 700; color: var(--text-1); text-align: right; flex-shrink: 0; min-width: 52px; }
+  .rda-issue-val.hi { color: var(--c-red-700); }
+  .rda-gaps-expand {
+    padding: var(--s2) var(--s4); font-size: var(--t-xs); font-weight: 600; color: var(--text-3);
+    cursor: pointer; text-align: center; background: var(--c-gray-50); user-select: none;
+    border-top: 1px solid var(--border-subtle); transition: background var(--ease), color var(--ease);
+  }
+  .rda-gaps-expand:hover { background: var(--c-gray-100); color: var(--text-2); }
+
+  /* RDA Flyout */
+  .rda-flyout-panel {
+    position: fixed; right: 0; top: 0; bottom: 0; width: 480px;
+    background: var(--surface); border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-flyout); z-index: 201;
+    display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform var(--ease-panel); overflow: hidden;
+  }
+  .rda-flyout-panel.open { transform: translateX(0); }
+  .rda-flyout-hdr {
+    padding: var(--s4) var(--s5) var(--s3); border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; gap: var(--s3);
+  }
+  .rda-flyout-hdr-left  { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .rda-flyout-title     { font-size: var(--t-base); font-weight: 700; }
+  .rda-flyout-summary   { font-size: var(--t-xs); color: var(--text-3); }
+  .rda-flyout-hdr-right { display: flex; align-items: center; gap: var(--s2); flex-shrink: 0; }
+  .rda-flyout-subhdr {
+    padding: var(--s2) var(--s5); font-size: var(--t-xs); font-weight: 700; color: var(--text-3);
+    letter-spacing: .06em; text-transform: uppercase;
+    border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; background: var(--c-gray-50);
+  }
+  .rda-flyout-body { flex: 1; overflow-y: auto; }
+  .rda-flyout-row { padding: var(--s4) var(--s5); border-bottom: 1px solid var(--border-subtle); }
+  .rda-flyout-row:last-child { border-bottom: none; }
+  .rda-flyout-row-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--s3); }
+  .rda-flyout-row-name  { font-size: var(--t-base); font-weight: 700; }
+  .rda-flyout-row-stats { display: flex; align-items: center; gap: var(--s1); }
+  .rda-flyout-stat-count { font-size: var(--t-md); font-weight: 700; color: var(--c-red-700); }
+  .rda-flyout-stat-sep   { font-size: var(--t-sm); color: var(--c-gray-300); }
+  .rda-flyout-stat-val   { font-size: var(--t-md); font-weight: 700; }
+  .rda-flyout-msg {
+    background: var(--c-gray-50); border-left: 3px solid var(--border); border-radius: 0 var(--r-md) var(--r-md) 0;
+    padding: var(--s2) var(--s3); font-size: var(--t-xs); color: var(--text-2); line-height: 1.6;
+    margin-bottom: var(--s3); max-height: 64px; overflow: hidden; cursor: pointer; transition: max-height .2s;
+  }
+  .rda-flyout-msg.expanded { max-height: 400px; }
+  .rda-flyout-msg-toggle {
+    font-size: var(--t-xs); color: var(--text-3); text-align: right;
+    cursor: pointer; user-select: none; margin-bottom: var(--s3);
+  }
+  .rda-flyout-actions { display: flex; gap: var(--s2); flex-wrap: wrap; }
+  .rda-flyout-btn {
+    display: inline-flex; align-items: center; gap: var(--s1);
+    padding: 6px var(--s3); border-radius: var(--r-md); font-size: var(--t-xs); font-weight: 600;
+    cursor: pointer; border: 1px solid; transition: background var(--ease);
+    text-decoration: none; white-space: nowrap; font-family: 'Inter', sans-serif; background: var(--surface);
+  }
+  .rda-flyout-btn.mail      { color: #1a73e8; border-color: #aac9f7; }
+  .rda-flyout-btn.mail:hover { background: var(--c-blue-50); }
+  .rda-flyout-btn.whatsapp  { color: #1a9e4a; border-color: #8ed8a9; }
+  .rda-flyout-btn.whatsapp:hover { background: var(--c-green-50); }
+  .rda-flyout-btn.copylink  { color: var(--text-2); border-color: var(--c-gray-300); }
+  .rda-flyout-btn.copylink:hover { background: var(--c-gray-100); }
+  .rda-flyout-btn.rda-primary { background: var(--c-gray-900); color: #fff; border-color: var(--c-gray-900); }
+  .rda-flyout-btn.rda-primary:hover { background: var(--c-gray-800); }
+  .rda-footer {
+    padding: var(--s2) var(--s6); border-top: 1px solid var(--border-subtle);
+    display: flex; align-items: center; justify-content: space-between; background: var(--c-gray-50);
+  }
+  .rda-footer-note { font-size: var(--t-xs); color: var(--text-3); }
+  .facility-select {
+    padding: var(--s1) var(--s3); border: 1px solid var(--border); border-radius: var(--r-sm);
+    font-family: 'Inter', sans-serif; font-size: var(--t-xs); font-weight: 500; color: var(--text-2);
+    background: var(--surface); cursor: pointer; outline: none;
+  }
+  .facility-select:focus { border-color: var(--c-gray-400); }
+
+  /* ══════════════════════════════
+     RETURN RESTOCK MONITOR
+  ══════════════════════════════ */
+  .restock-summary { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); }
+  .restock-kpi { padding: var(--s4) var(--s5); border-right: 1px solid var(--border); }
+  .restock-kpi:last-child { border-right: none; }
+  .restock-kpi-label {
+    display: flex; align-items: center; gap: var(--s1);
+    font-size: var(--t-xs); font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--text-3); margin-bottom: var(--s2);
+  }
+  .restock-kpi-label .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .restock-kpi-value { font-size: 22px; font-weight: 700; letter-spacing: -.02em; color: var(--text-1); margin-bottom: 3px; }
+  .restock-kpi-sub   { font-size: var(--t-xs); color: var(--text-3); }
+  .view-details-btn {
+    margin-top: var(--s2); display: inline-flex; align-items: center; gap: 3px;
+    font-size: var(--t-xs); font-weight: 600; color: var(--text-link);
+    background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif; padding: 0;
+  }
+  .view-details-btn:hover { text-decoration: underline; }
+  .restock-table-wrap { overflow-x: auto; }
+  .restock-table { width: 100%; border-collapse: collapse; }
+  .restock-table thead th {
+    padding: var(--s2) var(--s4); text-align: left; font-size: var(--t-xs); font-weight: 600;
+    color: var(--text-3); text-transform: uppercase; letter-spacing: .05em;
+    border-bottom: 1px solid var(--border); background: var(--c-gray-50); white-space: nowrap;
+  }
+  .restock-table thead th:not(:first-child) { text-align: right; }
+  .restock-table td { padding: var(--s2) var(--s4); border-bottom: 1px solid var(--border-subtle); font-size: var(--t-sm); vertical-align: middle; }
+  .restock-table td:not(:first-child) { text-align: right; }
+  .restock-table tbody tr:last-child td { border-bottom: none; }
+  .restock-table tfoot td {
+    padding: var(--s2) var(--s4); font-size: var(--t-sm); font-weight: 600;
+    background: var(--c-gray-50); border-top: 1px solid var(--border); text-align: right;
+  }
+  .restock-table tfoot td:first-child { text-align: left; }
+  .restock-table .date-cell { font-size: var(--t-sm); font-weight: 600; }
+  .restock-table .date-sub  { font-size: var(--t-xs); color: var(--text-3); margin-top: 1px; font-family: 'JetBrains Mono', monospace; }
+  .restock-table .agg-row td { background: var(--c-amber-50); }
+  .restock-table .agg-row .date-cell { color: var(--c-amber-700); }
+  .mono-val { font-size: 15px; font-weight: 700; color: var(--text-1); line-height: 1; }
+  .mono-val.red { color: var(--c-red-600); }
+  .mono-sub { font-size: var(--t-xs); color: var(--text-3); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+  .mono-sub.red { color: #f87171; }
+
+  /* ══════════════════════════════
+     DISPUTED RETURNS
+  ══════════════════════════════ */
+  .disputed-banner {
+    margin: var(--s4) var(--s6); background: var(--c-red-50); border: 1px solid var(--c-red-200);
+    border-radius: var(--r-md); padding: var(--s4) var(--s5); display: flex; align-items: center;
+  }
+  .banner-left { flex: 1; }
+  .banner-unresolvedlabel {
+    font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--c-red-700); display: flex; align-items: center; gap: var(--s1); margin-bottom: var(--s1);
+  }
+  .banner-unresolvedlabel .red-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c-red-600); }
+  .banner-total-val { font-size: var(--t-3xl); font-weight: 700; color: var(--c-red-800); letter-spacing: -.03em; line-height: 1; }
+  .banner-pending-label { font-size: var(--t-xs); color: var(--text-3); margin-top: 3px; }
+  .banner-pills {
+    display: flex; align-items: center;
+    border-left: 1px solid var(--c-red-200); padding-left: var(--s6); margin-left: var(--s6);
+  }
+  .banner-pill {
+    padding: var(--s2) var(--s4); text-align: center; cursor: pointer;
+    border-radius: var(--r-md); transition: background var(--ease); position: relative;
+  }
+  .banner-pill:hover { background: var(--c-red-100); }
+  .banner-pill .pill-label { font-size: var(--t-xs); color: var(--text-3); font-weight: 500; margin-bottom: var(--s1); }
+  .banner-pill .pill-val   { font-size: 15px; font-weight: 700; }
+  .banner-pill .pill-units { font-size: var(--t-xs); color: var(--text-3); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+  .banner-pill .pill-arrow { position: absolute; top: var(--s1); right: var(--s1); font-size: 9px; color: var(--text-3); opacity: 0; transition: opacity var(--ease); }
+  .banner-pill:hover .pill-arrow { opacity: 1; }
+  .pill-sep { width: 1px; height: 40px; background: var(--c-red-200); flex-shrink: 0; margin: 0 var(--s1); }
+  .pill-sep.bold { background: #f87171; }
+  .banner-cta-wrap { padding-left: var(--s5); margin-left: var(--s3); border-left: 1px solid var(--c-red-200); }
+  .view-items-btn {
+    padding: 6px var(--s4); border-radius: var(--r-sm); font-size: var(--t-xs); font-weight: 600;
+    border: 1px solid var(--c-red-200); background: var(--surface); color: var(--c-red-700);
+    cursor: pointer; font-family: 'Inter', sans-serif; transition: background var(--ease);
+    white-space: nowrap; display: flex; align-items: center; gap: var(--s1);
+  }
+  .view-items-btn:hover { background: var(--c-red-50); }
+  .disputed-table-section { padding: 0 var(--s6) var(--s5); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .section-label-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); }
+  .disputed-table { width: 100%; min-width: 520px; border-collapse: collapse; }
+  .disputed-table thead th {
+    padding: var(--s2) var(--s4); text-align: right; font-size: var(--t-xs); font-weight: 600;
+    color: var(--text-3); text-transform: uppercase; letter-spacing: .05em;
+    border-bottom: 1px solid var(--border); background: var(--c-gray-50); white-space: nowrap;
+  }
+  .disputed-table thead th:first-child { text-align: left; width: 170px; }
+  .disputed-table thead th.col-unresolved { background: var(--c-red-50); color: var(--c-red-700); }
+  .disputed-table thead .col-sub { font-size: 9px; font-weight: 400; color: var(--text-3); display: block; margin-top: 1px; text-transform: none; letter-spacing: 0; }
+  .disputed-table tbody td { border-bottom: 1px solid var(--border-subtle); text-align: right; }
+  .disputed-table tbody tr:last-child td { border-bottom: none; }
+  .disputed-table tfoot td { padding: var(--s2) var(--s4); font-size: var(--t-sm); font-weight: 600; background: var(--c-gray-50); border-top: 1px solid var(--border); text-align: right; }
+  .disputed-table tfoot td:first-child { text-align: left; }
+  td.col-unresolved { background: var(--c-red-50); }
+  .dis-cell-btn {
+    width: 100%; text-align: right; padding: var(--s2) var(--s4);
+    background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif;
+    transition: background var(--ease); position: relative;
+  }
+  .dis-cell-btn:hover { background: var(--c-blue-50); }
+  td.col-unresolved .dis-cell-btn:hover { background: var(--c-red-100); }
+  .dis-cell-btn .arrow-icon { position: absolute; top: var(--s1); right: var(--s1); font-size: 9px; color: var(--text-3); opacity: 0; transition: opacity var(--ease); }
+  .dis-cell-btn:hover .arrow-icon { opacity: 1; }
+  .dis-val   { font-size: 15px; font-weight: 700; color: var(--text-1); line-height: 1; }
+  .dis-val.red { color: var(--c-red-700); }
+  .dis-units { font-size: var(--t-xs); color: var(--text-3); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+  .row-label-disputed {
+    padding: var(--s2) var(--s4); font-size: var(--t-sm); font-weight: 500;
+    display: flex; align-items: center; gap: var(--s1); cursor: default; position: relative;
+  }
+  .row-tooltip-wrap { position: relative; display: inline-flex; align-items: center; }
+  .row-tooltip-content {
+    display: none; position: absolute; left: 20px; top: 0;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+    padding: var(--s3) var(--s4); z-index: 20; min-width: 240px;
+    box-shadow: var(--shadow-md); font-weight: 400; white-space: normal; text-align: left;
+  }
+  .row-tooltip-wrap:hover .row-tooltip-content { display: block; }
+  .tooltip-title { font-size: var(--t-sm); font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: var(--s2); margin-bottom: var(--s2); }
+  .tooltip-def   { font-size: var(--t-xs); color: var(--text-2); line-height: 1.5; }
+  .know-more-btn {
+    padding: 2px var(--s2); border-radius: var(--r-sm); background: var(--c-gray-900); color: #fff;
+    border: none; font-size: var(--t-xs); font-weight: 600; font-family: 'Inter', sans-serif;
+    cursor: pointer; white-space: nowrap; transition: background var(--ease);
+  }
+  .know-more-btn:hover { background: var(--c-gray-700); }
+
+  /* ══════════════════════════════
+     ACTIVE CLAIM MONITOR
+  ══════════════════════════════ */
+  .claim-risk-section { padding: var(--s4) var(--s6); border-bottom: 1px solid var(--border); background: var(--c-gray-50); }
+  .claim-risk-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--s3); }
+  .claim-risk-card {
+    border: 1px solid; border-radius: var(--r-md); padding: var(--s4);
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s3);
+    cursor: pointer; transition: box-shadow var(--ease), transform var(--ease);
+  }
+  .claim-risk-card:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+  .claim-risk-card.jeopardy { background: var(--c-red-50);   border-color: var(--c-red-200); }
+  .claim-risk-card.action   { background: var(--c-amber-50); border-color: var(--c-amber-200); }
+  .claim-risk-card.ageing   { background: var(--c-gray-50);  border-color: var(--border); }
+  .claim-risk-card-label { font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: var(--s2); }
+  .claim-risk-card.jeopardy .claim-risk-card-label { color: var(--c-red-700); }
+  .claim-risk-card.action   .claim-risk-card-label { color: var(--c-amber-700); }
+  .claim-risk-card.ageing   .claim-risk-card-label { color: var(--text-3); }
+  .claim-risk-value { font-size: var(--t-2xl); font-weight: 700; letter-spacing: -.02em; margin-bottom: 3px; }
+  .claim-risk-sub   { font-size: var(--t-xs); color: var(--text-3); }
+  .claim-risk-cta {
+    padding: 5px var(--s3); border-radius: var(--r-md); font-size: var(--t-xs); font-weight: 600;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text-2);
+    cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; flex-shrink: 0;
+    transition: border-color var(--ease), color var(--ease);
+  }
+  .claim-risk-cta:hover { border-color: var(--c-gray-400); color: var(--text-1); }
+  .claim-matrix-section { padding: var(--s4) var(--s6) var(--s5); }
+  .claim-matrix-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s3); }
+  .claim-matrix-label  { font-size: var(--t-sm); font-weight: 600; }
+  .timeline-select {
+    padding: var(--s1) var(--s3); border: 1px solid var(--border); border-radius: var(--r-sm);
+    font-family: 'Inter', sans-serif; font-size: var(--t-xs); color: var(--text-2);
+    background: var(--surface); cursor: pointer; outline: none;
+  }
+  .timeline-select:focus { border-color: var(--c-gray-400); }
+  .claim-matrix-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .claim-matrix { width: 100%; min-width: 560px; border-collapse: collapse; }
+  .claim-matrix thead th {
+    padding: var(--s2) var(--s4); text-align: right; font-size: var(--t-xs); font-weight: 600;
+    color: var(--text-3); text-transform: uppercase; letter-spacing: .05em;
+    border-bottom: 1px solid var(--border); background: var(--c-gray-50); white-space: nowrap;
+  }
+  .claim-matrix thead th:first-child { text-align: left; }
+  .claim-matrix thead th:nth-child(4) { background: var(--c-red-50); color: var(--c-red-700); }
+  .col-action-h { background: var(--c-amber-50) !important; color: var(--c-amber-700) !important; }
+  .claim-matrix tbody td { border-bottom: 1px solid var(--border-subtle); text-align: right; }
+  .claim-matrix tbody tr:last-child td { border-bottom: none; }
+  .claim-matrix tfoot td { padding: var(--s2) var(--s4); font-size: var(--t-sm); font-weight: 600; background: var(--c-gray-50); border-top: 1px solid var(--border); text-align: right; }
+  .claim-matrix tfoot td:first-child { text-align: left; }
+  td.col-action-td { background: var(--c-amber-50); }
+  .claim-cell-btn {
+    width: 100%; text-align: right; padding: var(--s2) var(--s4);
+    background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif;
+    transition: background var(--ease); position: relative;
+  }
+  .claim-cell-btn:hover { background: var(--c-blue-50); }
+  td.col-action-td .claim-cell-btn:hover { background: var(--c-amber-100); }
+  .claim-cell-btn .arrow-icon { position: absolute; top: var(--s1); right: var(--s1); font-size: 9px; color: var(--text-3); opacity: 0; transition: opacity var(--ease); }
+  .claim-cell-btn:hover .arrow-icon { opacity: 1; }
+  .claim-count { font-size: 15px; font-weight: 700; color: var(--text-1); line-height: 1; }
+  td.col-action-td .claim-count { color: var(--c-amber-700); }
+  .claim-val   { font-size: var(--t-xs); color: var(--text-3); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+  .claim-row-label { padding: var(--s2) var(--s4); font-size: var(--t-sm); font-weight: 500; text-align: left; }
+  .plat-tag { display: inline-flex; align-items: center; gap: 4px; font-size: var(--t-xs); color: var(--text-2); }
+
+  /* ══════════════════════════════
+     SHARED WIDGET FLYOUT
+  ══════════════════════════════ */
+  .flyout {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 480px;
+    background: var(--surface); border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-flyout); z-index: 101;
+    display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform var(--ease-panel); overflow: hidden;
+  }
+  .flyout.open { transform: translateX(0); }
+  .flyout-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    padding: var(--s4) var(--s5) var(--s3); border-bottom: 1px solid var(--border);
+    flex-shrink: 0; gap: var(--s3);
+  }
+  .flyout-header-left  { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .flyout-header-right { display: flex; align-items: center; gap: var(--s2); flex-shrink: 0; }
+  .flyout-title        { font-size: var(--t-base); font-weight: 700; display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+  .flyout-status-badge { font-size: var(--t-xs); font-weight: 600; padding: 2px 7px; border-radius: var(--r-sm); }
+  .flyout-sub          { font-size: var(--t-xs); color: var(--text-3); }
+  .flyout-subhdr-bar {
+    padding: var(--s2) var(--s5); font-size: var(--t-xs); font-weight: 700; color: var(--text-3);
+    letter-spacing: .06em; text-transform: uppercase;
+    border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; background: var(--c-gray-50);
+  }
+  .flyout-body { flex: 1; overflow-y: auto; }
+
+  /* Action card rows inside flyout */
+  .ac-row { padding: var(--s4) var(--s5); border-bottom: 1px solid var(--border-subtle); }
+  .ac-row:last-child { border-bottom: none; }
+  .ac-row-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--s2); }
+  .ac-name { font-size: var(--t-base); font-weight: 700; }
+  .ac-stats { display: flex; align-items: center; gap: var(--s1); }
+  .ac-stat-count { font-size: var(--t-md); font-weight: 700; color: var(--c-red-700); }
+  .ac-stat-sep   { color: var(--c-gray-300); }
+  .ac-stat-val   { font-size: var(--t-md); font-weight: 700; }
+  .ac-meta { font-size: var(--t-xs); color: var(--text-3); margin-bottom: var(--s3); }
+  .ac-badge {
+    display: inline-flex; align-items: center; padding: 2px 7px;
+    border-radius: var(--r-sm); font-size: var(--t-xs); font-weight: 600; margin-bottom: var(--s3);
+  }
+  .ac-badge.critical { background: var(--c-red-50);   color: var(--c-red-700); }
+  .ac-badge.warn     { background: var(--c-amber-50); color: var(--c-amber-700); }
+  .ac-badge.ok       { background: var(--c-green-50); color: var(--c-green-700); }
+  .ac-badge.neutral  { background: var(--c-gray-100); color: var(--text-2); }
+  .ac-msg {
+    background: var(--c-gray-50); border-left: 3px solid var(--border); border-radius: 0 var(--r-md) var(--r-md) 0;
+    padding: var(--s2) var(--s3); font-size: var(--t-xs); color: var(--text-2); line-height: 1.65;
+    margin-bottom: var(--s2); max-height: 62px; overflow: hidden;
+    cursor: pointer; transition: max-height .22s ease; white-space: pre-wrap;
+  }
+  .ac-msg.expanded { max-height: 500px; }
+  .ac-msg-toggle { font-size: var(--t-xs); color: var(--text-3); text-align: right; cursor: pointer; user-select: none; margin-bottom: var(--s3); }
+  /* Action-loop archive states */
+  .ac-row.actioned { background: var(--c-gray-50); }
+  .ac-row.actioned .ac-name { text-decoration: line-through; color: var(--text-3); }
+  .ac-row-status-tag {
+    display: inline-flex; align-items: center; gap: var(--s1);
+    font-size: var(--t-xs); font-weight: 600; padding: 2px 7px; border-radius: var(--r-sm);
+    margin-bottom: var(--s3);
+  }
+  .ac-row-status-tag.done   { background: var(--c-green-50); color: var(--c-green-700); }
+  .ac-row-status-tag.snoozed{ background: var(--c-amber-50); color: var(--c-amber-700); }
+  .ac-row-footer { display: flex; align-items: center; justify-content: space-between; margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--border-subtle); }
+  .ac-row-footer-actions { display: flex; gap: var(--s2); }
+  .ac-done-btn {
+    padding: 5px var(--s3); border-radius: var(--r-md); font-size: var(--t-xs); font-weight: 600;
+    cursor: pointer; border: 1px solid var(--c-gray-900); background: var(--c-gray-900); color: #fff;
+    font-family: 'Inter', sans-serif; transition: background var(--ease);
+  }
+  .ac-done-btn:hover { background: var(--c-gray-800); }
+  .ac-snooze-btn, .ac-restore-btn {
+    padding: 5px var(--s3); border-radius: var(--r-md); font-size: var(--t-xs); font-weight: 600;
+    cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text-2);
+    font-family: 'Inter', sans-serif; transition: background var(--ease);
+  }
+  .ac-snooze-btn:hover, .ac-restore-btn:hover { background: var(--c-gray-100); color: var(--text-1); }
+  /* Flyout archived section */
+  .flyout-archive-toggle {
+    display: flex; align-items: center; gap: var(--s2);
+    padding: var(--s2) var(--s5); font-size: var(--t-xs); font-weight: 600; color: var(--text-3);
+    cursor: pointer; border-top: 1px solid var(--border); background: var(--c-gray-50);
+    user-select: none; transition: color var(--ease);
+  }
+  .flyout-archive-toggle:hover { color: var(--text-2); }
+  .flyout-archive-caret { font-size: 9px; transition: transform .18s; display: inline-block; }
+  .flyout-archive-toggle.open .flyout-archive-caret { transform: rotate(90deg); }
+  .flyout-archive-list { display: none; }
+  .flyout-archive-list.open { display: block; }
+  .ac-actions { display: flex; gap: var(--s2); flex-wrap: wrap; }
+  .ac-btn {
+    display: inline-flex; align-items: center; gap: var(--s1);
+    padding: 6px var(--s3); border-radius: var(--r-md); font-size: var(--t-xs); font-weight: 600;
+    cursor: pointer; border: 1px solid; transition: background var(--ease);
+    text-decoration: none; white-space: nowrap; font-family: 'Inter', sans-serif; background: var(--surface);
+  }
+  .ac-btn.mail     { color: #1a73e8; border-color: #aac9f7; }
+  .ac-btn.mail:hover { background: var(--c-blue-50); }
+  .ac-btn.whatsapp { color: #1a9e4a; border-color: #8ed8a9; }
+  .ac-btn.whatsapp:hover { background: var(--c-green-50); }
+  .ac-btn.portal   { color: var(--c-violet-600); border-color: #c4b5fd; }
+  .ac-btn.portal:hover { background: var(--c-violet-50); }
+  .ac-btn.appeal   { color: var(--c-red-700); border-color: var(--c-red-200); }
+  .ac-btn.appeal:hover { background: var(--c-red-50); }
+  .ac-btn.copylink { color: var(--text-2); border-color: var(--c-gray-300); }
+  .ac-btn.copylink:hover { background: var(--c-gray-100); }
+  /* Primary lead action — filled, draws the eye to the most important CTA */
+  .ac-btn.ac-primary {
+    background: var(--c-gray-900); color: #fff; border-color: var(--c-gray-900);
+  }
+  .ac-btn.ac-primary:hover { background: var(--c-gray-800); }
+  .flyout-footer {
+    padding: var(--s3) var(--s5); border-top: 1px solid var(--border);
+    background: var(--c-gray-50); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .footer-note { font-size: var(--t-xs); color: var(--text-3); }
+  .export-btn {
+    padding: 5px var(--s3); border-radius: var(--r-sm); border: 1px solid var(--border);
+    background: var(--surface); font-size: var(--t-xs); font-weight: 500;
+    font-family: 'Inter', sans-serif; color: var(--text-2); cursor: pointer; transition: all var(--ease);
+  }
+  .export-btn:hover { border-color: var(--c-gray-400); color: var(--text-1); }
+
+  /* ══════════════════════════════
+     COPILOT SIDEBAR
+  ══════════════════════════════ */
+  .cop-wrap {
+    position: sticky; top: 28px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); overflow: hidden; display: flex; flex-direction: column;
+    max-height: calc(100vh - 56px);
+    order: 2;
+  }
+  .widgets-col { order: 1; min-width: 0; }
+  /* Clean white header — no dark chrome at widget level */
+  .cop-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--s3) var(--s4); border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .cop-header-left { display: flex; align-items: center; gap: var(--s2); }
+  .cop-icon  { font-size: 11px; color: var(--text-3); }
+  .cop-title { font-size: var(--t-xs); font-weight: 700; color: var(--text-1); text-transform: uppercase; letter-spacing: .06em; }
+  .cop-chip  { font-size: var(--t-xs); font-weight: 600; padding: 2px 7px; border-radius: 10px; background: var(--c-gray-100); color: var(--text-2); }
+  .cop-chip.has-critical { background: var(--c-red-50); color: var(--c-red-700); }
+
+  /* Sidebar card list */
+  .cop-cards { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+  .cop-card {
+    display: grid; grid-template-columns: 3px 1fr;
+    cursor: pointer; border-bottom: 1px solid var(--border-subtle); transition: background var(--ease);
+  }
+  .cop-card:last-child { border-bottom: none; }
+  .cop-card:hover { background: var(--c-gray-50); }
+  .cop-card-stripe { width: 3px; }
+  .cop-card.urg-critical .cop-card-stripe { background: var(--c-red-600); }
+  .cop-card.urg-warn     .cop-card-stripe { background: var(--c-amber-600); }
+  .cop-card.urg-ok       .cop-card-stripe { background: var(--c-green-600); }
+  .cop-card-body { padding: var(--s3) var(--s3); display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .cop-card-header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s2); }
+  .cop-card-title { font-size: var(--t-xs); font-weight: 600; color: var(--text-1); line-height: 1.4; flex: 1; min-width: 0; }
+  .cop-card-value { font-size: var(--t-sm); font-weight: 700; flex-shrink: 0; white-space: nowrap; }
+  .cop-card.urg-critical .cop-card-value { color: var(--c-red-700); }
+  .cop-card.urg-warn     .cop-card-value { color: var(--c-amber-700); }
+  .cop-card.urg-ok       .cop-card-value { color: var(--c-green-700); }
+  .cop-card-subtext {
+    font-size: 10px; color: var(--text-3); line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .cop-card-footer { display: flex; align-items: center; justify-content: flex-end; margin-top: 2px; }
+  .cop-card-badge { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; }
+  .cop-card.urg-critical .cop-card-badge { background: var(--c-red-50);   color: var(--c-red-700); }
+  .cop-card.urg-warn     .cop-card-badge { background: var(--c-amber-50); color: var(--c-amber-700); }
+  .cop-card.urg-ok       .cop-card-badge { background: var(--c-green-50); color: var(--c-green-700); }
+
+  /* ── Structured flyout styles ── */
+  .sla-stakes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); margin-bottom: var(--s5); }
+  .sla-stake { padding: var(--s3) var(--s4); border-radius: var(--r-md); background: var(--c-red-50); border: 1px solid var(--c-red-200); }
+  .sla-stake-icon { font-size: 18px; margin-bottom: 4px; }
+  .sla-stake-text { font-size: var(--t-xs); color: var(--c-red-700); line-height: 1.5; font-weight: 500; }
+  .sla-stake-text strong { font-weight: 700; }
+  .sla-trigger {
+    font-size: var(--t-sm); color: var(--text-2); line-height: 1.65;
+    padding: var(--s3) var(--s4); background: var(--c-gray-50);
+    border-left: 3px solid var(--c-amber-400); border-radius: 0 var(--r-md) var(--r-md) 0;
+    margin-bottom: var(--s5);
+  }
+  .sla-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; margin-bottom: var(--s4); }
+  .sla-toggle-btn { padding: 5px var(--s4); font-size: var(--t-xs); font-weight: 600; color: var(--text-3); background: var(--surface); border: none; cursor: pointer; font-family: 'Inter', sans-serif; transition: all var(--ease); }
+  .sla-toggle-btn.active { background: var(--c-gray-900); color: #fff; }
+  .sla-toggle-btn:not(.active):hover { background: var(--c-gray-50); color: var(--text-2); }
+  .sla-table { width: 100%; border-collapse: collapse; font-size: var(--t-xs); margin-bottom: var(--s2); }
+  .sla-table thead th { text-align: left; padding: var(--s2) var(--s3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); border-bottom: 2px solid var(--border); white-space: nowrap; }
+  .sla-table thead th:last-child { text-align: right; }
+  .sla-table tbody tr.sla-row { cursor: pointer; transition: background var(--ease); }
+  .sla-table tbody tr.sla-row:hover { background: var(--c-gray-50); }
+  .sla-table tbody tr.sla-row td { padding: var(--s2) var(--s3); border-bottom: 1px solid var(--border-subtle); vertical-align: middle; }
+  .sla-row-name { font-weight: 600; color: var(--text-1); display: flex; align-items: center; gap: var(--s2); }
+  .sla-row-caret { font-size: 9px; color: var(--text-3); transition: transform .15s; display: inline-block; }
+  .sla-row.expanded .sla-row-caret { transform: rotate(90deg); }
+  .sla-row-count  { font-weight: 700; color: var(--c-red-700); text-align: center; }
+  .sla-row-oldest { font-size: var(--t-xs); font-weight: 600; color: var(--c-red-600); white-space: nowrap; }
+  .sla-row-oldest span { font-size: 9px; font-weight: 500; color: var(--text-3); display: block; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 1px; }
+  .sla-row-val   { font-weight: 700; color: var(--text-1); font-family: 'JetBrains Mono', monospace; }
+  .sla-row-actions { text-align: right; white-space: nowrap; }
+  .sla-act-btn { display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; border-radius: var(--r-sm); border: 1px solid var(--border); font-size: 10px; font-weight: 600; color: var(--text-2); background: var(--surface); cursor: pointer; text-decoration: none; font-family: 'Inter', sans-serif; transition: all var(--ease); margin-left: 4px; }
+  .sla-act-btn:hover       { border-color: var(--c-gray-400); color: var(--text-1); }
+  .sla-act-btn.mail:hover  { border-color: #aac9f7; color: #1a73e8; background: var(--c-blue-50); }
+  .sla-act-btn.wa:hover    { border-color: #8ed8a9; color: #1a9e4a; background: var(--c-green-50); }
+  .sla-act-btn.call:hover  { border-color: #c4b5fd; color: var(--c-violet-600); background: var(--c-violet-50); }
+  .sla-cohort-row { display: none; }
+  .sla-cohort-row.open { display: table-row; }
+  .sla-cohort-cell { padding: var(--s2) var(--s3) var(--s3) var(--s5) !important; background: var(--c-gray-50); }
+  .sla-cohort-inner { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--s3); padding: var(--s3); background: #fff; border: 1px solid var(--border); border-radius: var(--r-md); }
+  .sla-cohort-bucket { display: flex; flex-direction: column; gap: 3px; }
+  .sla-cohort-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+  .sla-cohort-label.d10p { color: var(--c-red-600); }
+  .sla-cohort-label.d610 { color: var(--c-amber-600); }
+  .sla-cohort-label.d35  { color: var(--c-gray-500); }
+  .sla-cohort-count { font-size: var(--t-base); font-weight: 800; color: var(--text-1); }
+  .sla-cohort-val   { font-size: var(--t-xs); color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+  /* detail expand row for single-contact tasks */
+  .sla-detail-row { display: none; }
+  .sla-detail-row.open { display: table-row; }
+  .sla-detail-cell { padding: var(--s2) var(--s3) var(--s3) var(--s5) !important; background: var(--c-gray-50); }
+  .sla-detail-box { padding: var(--s3); background: #fff; border: 1px solid var(--border); border-radius: var(--r-md); font-size: var(--t-xs); color: var(--text-2); line-height: 1.6; }
+  .sla-bulk { display: flex; align-items: center; gap: var(--s3); padding: var(--s4) 0 var(--s2); border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .sla-bulk-label { font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); margin-right: auto; }
+  .sla-bulk-btn { display: inline-flex; align-items: center; gap: var(--s2); padding: 7px var(--s4); border-radius: var(--r-md); border: 1px solid; font-size: var(--t-xs); font-weight: 600; cursor: pointer; text-decoration: none; font-family: 'Inter', sans-serif; transition: all var(--ease); }
+  .sla-bulk-btn.mail { color: #1a73e8; border-color: #aac9f7; background: #fff; }
+  .sla-bulk-btn.mail:hover { background: var(--c-blue-50); }
+  .sla-bulk-btn.wa   { color: #1a9e4a; border-color: #8ed8a9; background: #fff; }
+  .sla-bulk-btn.wa:hover   { background: var(--c-green-50); }
+
+  /* ── Restock SLA flyout ── */
+  .rst-stakes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--s3); margin-bottom: var(--s5); }
+  .rst-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: var(--s2); }
+  .rst-table thead th { text-align: left; padding: var(--s1) var(--s2); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); border-bottom: 2px solid var(--border); white-space: nowrap; }
+  .rst-table thead th.num { text-align: center; }
+  .rst-table thead th:last-child { text-align: right; }
+  .rst-table tbody tr.sla-row td { padding: var(--s1) var(--s2); border-bottom: 1px solid var(--border-subtle); vertical-align: middle; }
+  .rst-sub { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .rst-sub-count { font-size: 11px; font-weight: 700; }
+  .rst-sub-label { font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .rst-sub.qc .rst-sub-count  { color: var(--c-gray-600); }
+  .rst-sub.qc .rst-sub-label  { color: var(--c-gray-400); }
+  .rst-sub.good .rst-sub-count { color: var(--c-green-600); }
+  .rst-sub.good .rst-sub-label { color: var(--c-green-600); }
+  .rst-sub.bad .rst-sub-count  { color: var(--c-red-600); }
+  .rst-sub.bad .rst-sub-label  { color: var(--c-red-600); }
+  /* Restock cohort buckets */
+  .sla-cohort-label.d7p  { color: var(--c-red-600); }
+  .sla-cohort-label.d57  { color: var(--c-amber-600); }
+  .sla-cohort-label.d24  { color: var(--c-gray-500); }
+
+  /* Archive section — sidebar */
+  .cop-archive-toggle {
+    display: flex; align-items: center; gap: var(--s2);
+    padding: var(--s2) var(--s3); font-size: var(--t-xs); font-weight: 600; color: var(--text-3);
+    cursor: pointer; border-top: 1px solid var(--border); background: var(--c-gray-50);
+    user-select: none; transition: color var(--ease); flex-shrink: 0;
+  }
+  .cop-archive-toggle:hover { color: var(--text-2); }
+  .cop-archive-caret { font-size: 9px; transition: transform .18s; display: inline-block; }
+  .cop-archive-toggle.open .cop-archive-caret { transform: rotate(90deg); }
+  .cop-archive-list { display: none; flex-direction: column; }
+  .cop-archive-list.open { display: flex; }
+  .cop-card.archived { opacity: .45; cursor: default; pointer-events: none; }
+  .cop-card.archived .cop-card-title { text-decoration: line-through; }
+  .cop-card.archived .cop-card-stripe { background: var(--c-gray-300) !important; }
+  .cop-card.archived .cop-card-value  { color: var(--text-3) !important; }
+
+  /* ══════════════════════════════
+     COPILOT FLYOUT
+  ══════════════════════════════ */
+  .cop-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.28); z-index: 300; }
+  .cop-overlay.open { display: block; }
+  .cop-flyout {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 780px;
+    background: var(--surface); border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-flyout); z-index: 301;
+    display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform var(--ease-panel);
+  }
+  .cop-flyout.open { transform: translateX(0); }
+
+  /* Flyout header — clean, no dark background */
+  .cop-fly-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: var(--s4) var(--s5); border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .cop-fly-hdr-left { display: flex; align-items: center; gap: var(--s3); }
+  .cop-fly-icon  { font-size: 11px; color: var(--text-3); }
+  .cop-fly-title { font-size: var(--t-base); font-weight: 700; color: var(--text-1); }
+  .cop-fly-sub   { font-size: var(--t-xs); color: var(--text-3); margin-top: 1px; }
+  .cop-fly-close {
+    width: 28px; height: 28px; border-radius: var(--r-md); border: 1px solid var(--border);
+    background: var(--surface); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 13px; color: var(--text-3);
+    transition: all var(--ease); font-family: 'Inter', sans-serif; flex-shrink: 0;
+  }
+  .cop-fly-close:hover { background: var(--c-gray-100); color: var(--text-1); }
+  .cop-mob-back {
+    display: none; align-items: center; gap: var(--s1);
+    padding: 5px var(--s3); border-radius: var(--r-md); border: 1px solid var(--border);
+    background: var(--surface); font-size: var(--t-xs); font-weight: 600; color: var(--text-2);
+    cursor: pointer; font-family: 'Inter', sans-serif; transition: all var(--ease);
+  }
+  .cop-mob-back:hover { background: var(--c-gray-100); }
+
+  /* Split body */
+  .cop-fly-body { flex: 1; display: grid; grid-template-columns: 256px 1fr; overflow: hidden; }
+
+  /* Left rail */
+  .cop-rail {
+    border-right: 1px solid var(--border); display: flex; flex-direction: column;
+    overflow: hidden; background: var(--c-gray-50);
+  }
+  .cop-rail-hdr {
+    padding: var(--s2) var(--s4); font-size: var(--t-xs); font-weight: 700;
+    letter-spacing: .07em; text-transform: uppercase; color: var(--text-3);
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cop-rail-close {
+    display: none; /* shown only on mobile via media query */
+    width: 28px; height: 28px; border-radius: var(--r-md);
+    border: 1px solid var(--border); background: var(--surface);
+    align-items: center; justify-content: center;
+    cursor: pointer; font-size: 13px; color: var(--text-3);
+    transition: all var(--ease); font-family: 'Inter', sans-serif;
+  }
+  .cop-rail-close:hover { background: var(--c-gray-100); color: var(--text-1); }
+  .cop-rail-list { flex: 1; overflow-y: auto; }
+  .cop-rail-item {
+    display: grid; grid-template-columns: 3px 1fr;
+    cursor: pointer; border-bottom: 1px solid var(--border-subtle); transition: background var(--ease);
+  }
+  .cop-rail-item:hover { background: var(--c-gray-100); }
+  .cop-rail-item.selected { background: var(--surface); box-shadow: inset -2px 0 0 var(--c-gray-900); }
+  .cop-rail-item.selected:hover { background: var(--surface); }
+  .cop-rail-stripe { width: 3px; }
+  .cop-rail-item.urg-critical .cop-rail-stripe { background: var(--c-red-600); }
+  .cop-rail-item.urg-warn     .cop-rail-stripe { background: var(--c-amber-600); }
+  .cop-rail-item.urg-ok       .cop-rail-stripe { background: var(--c-green-600); }
+  .cop-rail-body { padding: var(--s3) var(--s3); min-width: 0; }
+  .cop-rail-title { font-size: var(--t-xs); font-weight: 500; color: var(--text-2); line-height: 1.35; }
+  .cop-rail-item.selected .cop-rail-title { color: var(--text-1); font-weight: 600; }
+  .cop-rail-val { font-size: var(--t-xs); font-weight: 700; margin-top: 3px; }
+  .cop-rail-item.urg-critical .cop-rail-val { color: var(--c-red-700); }
+  .cop-rail-item.urg-warn     .cop-rail-val { color: var(--c-amber-700); }
+  .cop-rail-item.urg-ok       .cop-rail-val { color: var(--c-green-700); }
+  /* Archived items in rail — clickable but visually subdued */
+  .cop-rail-item.archived { opacity: .5; cursor: pointer; }
+  .cop-rail-item.archived .cop-rail-title { text-decoration: line-through; color: var(--text-3); }
+  .cop-rail-item.archived .cop-rail-stripe { background: var(--c-gray-300) !important; }
+  .cop-rail-archive-toggle {
+    display: flex; align-items: center; gap: var(--s2);
+    padding: var(--s2) var(--s3); font-size: var(--t-xs); font-weight: 600; color: var(--text-3);
+    cursor: pointer; border-top: 1px solid var(--border); background: var(--c-gray-100);
+    user-select: none; transition: color var(--ease); flex-shrink: 0;
+  }
+  .cop-rail-archive-toggle:hover { color: var(--text-2); }
+  .cop-rail-archive-caret { font-size: 9px; transition: transform .18s; display: inline-block; }
+  .cop-rail-archive-toggle.open .cop-rail-archive-caret { transform: rotate(90deg); }
+  .cop-rail-archive-list { display: none; }
+  .cop-rail-archive-list.open { display: block; }
+
+  /* Right detail panel */
+  .cop-detail { display: flex; flex-direction: column; overflow: hidden; }
+  .cop-detail-scroll { flex: 1; overflow-y: auto; padding: var(--s6); }
+
+  .cop-detail-eyebrow {
+    font-size: var(--t-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: var(--s2); display: flex; align-items: center; gap: var(--s2);
+  }
+  .cop-urgency-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .cop-urgency-dot.critical { background: var(--c-red-600); }
+  .cop-urgency-dot.warn     { background: var(--c-amber-600); }
+  .cop-urgency-dot.ok       { background: var(--c-green-600); }
+
+  .cop-detail-title { font-size: var(--t-lg); font-weight: 700; line-height: 1.3; margin-bottom: var(--s2); }
+  .cop-detail-meta  { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s4); flex-wrap: wrap; }
+  .cop-detail-val   { font-size: 15px; font-weight: 800; }
+  .cop-detail-sep   { color: var(--c-gray-300); }
+  .cop-detail-badge { font-size: var(--t-xs); font-weight: 600; padding: 2px 7px; border-radius: var(--r-sm); }
+  .cop-detail-badge.critical { background: var(--c-red-50);   color: var(--c-red-700); }
+  .cop-detail-badge.warn     { background: var(--c-amber-50); color: var(--c-amber-700); }
+  .cop-detail-badge.ok       { background: var(--c-green-50); color: var(--c-green-700); }
+  .cop-detail-badge.neutral  { background: var(--c-gray-100); color: var(--text-2); }
+
+  .cop-detail-reason {
+    font-size: var(--t-sm); color: var(--text-2); line-height: 1.65;
+    padding: var(--s3) var(--s4); background: var(--c-gray-50);
+    border-left: 3px solid var(--border); border-radius: 0 var(--r-md) var(--r-md) 0;
+    margin-bottom: var(--s5);
+  }
+  .cop-detail-reason strong { color: var(--text-1); font-weight: 600; }
+
+  .cop-dac-label {
+    font-size: var(--t-xs); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--text-3); margin-bottom: var(--s2);
+  }
+  .cop-dac-to { font-size: var(--t-sm); color: var(--text-2); margin-bottom: var(--s2); }
+  .cop-dac-to strong { color: var(--text-1); font-weight: 600; }
+  .cop-dac-msg {
+    font-size: var(--t-xs); color: var(--text-2); line-height: 1.65; white-space: pre-wrap;
+    max-height: 72px; overflow: hidden; transition: max-height .22s ease;
+    background: var(--c-gray-50); padding: var(--s3); border-radius: var(--r-md);
+    margin-bottom: var(--s2); border: 1px solid var(--border);
+  }
+  .cop-dac-msg.open { max-height: 800px; }
+  .cop-dac-toggle {
+    font-size: var(--t-xs); font-weight: 600; color: var(--text-3); cursor: pointer;
+    background: none; border: none; font-family: 'Inter', sans-serif;
+    text-align: left; padding: 0; margin-bottom: var(--s4); display: block; transition: color var(--ease);
+  }
+  .cop-dac-toggle:hover { color: var(--text-1); }
+  .cop-dac-btns { display: flex; gap: var(--s2); flex-wrap: wrap; }
+  .cop-dac-btn {
+    display: inline-flex; align-items: center; gap: var(--s1);
+    padding: 7px var(--s3); border-radius: var(--r-md); font-size: var(--t-sm); font-weight: 600;
+    cursor: pointer; text-decoration: none; border: 1px solid;
+    font-family: 'Inter', sans-serif; transition: background var(--ease);
+    white-space: nowrap; background: var(--surface);
+  }
+  .cop-dac-btn.mail     { color: #1a73e8; border-color: #aac9f7; }
+  .cop-dac-btn.mail:hover { background: var(--c-blue-50); }
+  .cop-dac-btn.whatsapp { color: #1a9e4a; border-color: #8ed8a9; }
+  .cop-dac-btn.whatsapp:hover { background: var(--c-green-50); }
+  .cop-dac-btn.portal   { color: var(--c-violet-600); border-color: #c4b5fd; }
+  .cop-dac-btn.portal:hover { background: var(--c-violet-50); }
+
+  .cop-dac-export {
+    font-size: var(--t-xs); font-weight: 600; color: var(--text-2); cursor: pointer;
+    background: var(--c-gray-100); border: 1px solid var(--border); border-radius: var(--r-sm);
+    padding: 3px var(--s2); font-family: 'Inter', sans-serif; transition: background var(--ease);
+  }
+  .cop-dac-export:hover { background: var(--c-gray-200); color: var(--text-1); }
+
+  .cop-detail-footer {
+    padding: var(--s3) var(--s6); border-top: 1px solid var(--border);
+    display: flex; gap: var(--s2); flex-shrink: 0; background: var(--c-gray-50);
+  }
+  .cop-dfooter-btn {
+    padding: 7px var(--s4); border-radius: var(--r-md); font-size: var(--t-sm); font-weight: 600;
+    cursor: pointer; border: 1px solid; font-family: 'Inter', sans-serif; transition: background var(--ease);
+  }
+  .cop-dfooter-btn.primary { background: var(--c-gray-900); color: #fff; border-color: var(--c-gray-900); }
+  .cop-dfooter-btn.primary:hover { background: var(--c-gray-800); }
+  .cop-dfooter-btn.ghost   { background: var(--surface); color: var(--text-2); border-color: var(--border); }
+  .cop-dfooter-btn.ghost:hover { background: var(--c-gray-50); color: var(--text-1); }
+
+  .cop-clear {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 40px var(--s6); text-align: center; gap: var(--s2);
+  }
+  .cop-clear-icon  { font-size: 28px; margin-bottom: var(--s1); }
+  .cop-clear-title { font-size: var(--t-base); font-weight: 700; }
+  .cop-clear-sub   { font-size: var(--t-sm); color: var(--text-3); line-height: 1.5; }
+/* ══════════════════════════════════════════════════════
+     RESPONSIVE — MOBILE & TABLET
+     Breakpoints: 768px (tablet) · 480px (phone)
+  ══════════════════════════════════════════════════════ */
+
+  /* ── Tablet (≤768px) ─────────────────────────────── */
+  @media (max-width: 768px) {
+
+    body { padding: 16px; }
+
+    /* Page header */
+    .page-header { flex-direction: column; gap: 4px; margin-bottom: 16px; }
+    .page-refresh { align-self: flex-start; }
+
+    /* Single-column layout — copilot drops below widgets */
+    .page-body {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    /* Summary cards — 2×2 grid */
+    .summary-grid { grid-template-columns: repeat(2,1fr); }
+    .summary-card { border-right: none; border-bottom: 1px solid var(--border); }
+    .summary-card:nth-child(odd)  { border-right: 1px solid var(--border); }
+    .summary-card:last-child,
+    .summary-card:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+
+    /* RDA gap cards — stay 2-col on tablet */
+    .rda-gap-cards { grid-template-columns: repeat(2,1fr); }
+
+    /* Restock KPI row — 2×2 */
+    .restock-summary { grid-template-columns: repeat(2,1fr); }
+    .restock-kpi { border-bottom: 1px solid var(--border); }
+    .restock-kpi:nth-child(odd) { border-right: 1px solid var(--border); }
+
+    /* Claim risk cards — 3-col stays on tablet, tighten */
+    .claim-risk-cards { gap: var(--s2); }
+    .claim-risk-card  { padding: var(--s3); }
+
+    /* Disputed banner — pills wrap below total */
+    .disputed-banner { flex-direction: column; gap: var(--s4); }
+    .banner-pills    { border-left: none; border-top: 1px solid var(--c-red-200); padding-left: 0; padding-top: var(--s3); margin-left: 0; margin-top: 0; flex-wrap: wrap; }
+    .banner-cta-wrap { border-left: none; padding-left: 0; margin-left: 0; }
+
+    /* RDA open gaps — stay 2-col on tablet */
+    .rda-gaps-grid { grid-template-columns: repeat(2,1fr); }
+
+    /* Tables — already overflow-x: auto, tighten cell padding */
+    .restock-table thead th,
+    .restock-table td,
+    .disputed-table thead th,
+    .disputed-table td,
+    .disputed-table tfoot td,
+    .claim-matrix thead th,
+    .claim-matrix tbody td,
+    .claim-matrix tfoot td { padding: var(--s1) var(--s3); }
+
+    /* Flyouts — full screen on tablet */
+    .flyout,
+    .rda-flyout-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+
+    /* Copilot flyout — full screen, hide rail by default, show detail */
+    .cop-flyout       { width: 100%; border-left: none; }
+    .cop-fly-body     { grid-template-columns: 1fr; }
+    .cop-rail         { display: none; }
+    .cop-rail.mob-open{ display: flex; position: fixed; inset: 0; z-index: 310; background: var(--surface); flex-direction: column; }
+
+    /* Copilot sidebar — full width, above widgets on mobile */
+    .cop-wrap { position: static; max-height: none; order: -1; }
+
+    /* Copilot flyout — back button only; close is redundant on mobile */
+    .cop-mob-back { display: flex; }
+    .cop-fly-close { display: none; }
+    /* Rail close button — visible when rail is full-screen on mobile */
+    .cop-rail.mob-open .cop-rail-close { display: flex; }
+
+    /* Widget header — wrap on small screens */
+    .widget-header { flex-wrap: wrap; gap: var(--s2); }
+  }
+
+  /* ── Phone (≤480px) ──────────────────────────────── */
+  @media (max-width: 480px) {
+
+    body { padding: 12px; }
+
+    .page-sub    { display: none; }
+    .page-refresh{ display: none; }
+
+    /* Summary cards — single column */
+    .summary-grid { grid-template-columns: 1fr; }
+    .summary-card { border-right: none !important; border-bottom: 1px solid var(--border); }
+    .summary-card:last-child { border-bottom: none; }
+    .summary-card-value { font-size: var(--t-2xl); }
+
+    /* RDA gap cards — single column */
+    .rda-gap-cards { grid-template-columns: 1fr; }
+    .rda-gap-card  { border-right: none !important; border-bottom: 1px solid var(--border); }
+    .rda-gap-card:last-child { border-bottom: none; }
+
+    /* Restock KPI — single column */
+    .restock-summary { grid-template-columns: 1fr; }
+    .restock-kpi     { border-right: none !important; }
+
+    /* Claim risk cards — single column */
+    .claim-risk-cards { grid-template-columns: 1fr; }
+
+    /* RDA gaps grid — single column */
+    .rda-gaps-grid { grid-template-columns: 1fr; }
+    .rda-gaps-col  { border-right: none !important; border-bottom: 1px solid var(--border); }
+    .rda-gaps-col:last-child { border-bottom: none; }
+
+    /* Disputed banner — tighten further */
+    .banner-pills { justify-content: flex-start; }
+    .banner-total-val { font-size: var(--t-2xl); }
+
+    /* RDA flyout footer — stack */
+    .rda-footer { flex-direction: column; align-items: flex-start; gap: var(--s2); }
+
+    /* Flyout footer — stack */
+    .flyout-footer { flex-direction: column; align-items: flex-start; gap: var(--s2); }
+
+    /* Cop detail footer — stack */
+    .cop-detail-footer { flex-wrap: wrap; }
+
+    /* Action buttons — wrap */
+    .ac-actions, .rda-flyout-actions, .cop-dac-btns { flex-wrap: wrap; }
+
+    /* Lang toggle moves to header right area */
+    .flyout-header-right { flex-wrap: wrap; }
+
+    /* Widget header stat value — smaller */
+    .rda-gap-num { font-size: var(--t-2xl); }
+  }
+</style>
+
+</head>
+<body>
+
+<!-- ── PAGE HEADER ── -->
+<div class="page-header">
+  <div>
+    <div class="page-title">Return Recovery Dashboard</div>
+    <div class="page-sub">Reconciliation · Returns Intelligence Platform</div>
+  </div>
+  <div class="page-refresh">↻ Refreshed automatically every 8 hours</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     TWO-COLUMN LAYOUT: widgets left, PAB right
+     ══════════════════════════════════════ -->
+<div class="page-body">
+<!-- ══════════════════════════════════════
+     COPILOT SIDEBAR (right col)
+     ══════════════════════════════════════ -->
+<div class="cop-wrap">
+  <div class="cop-header">
+    <div class="cop-header-left">
+      <span class="cop-icon">✦</span>
+      <span class="cop-title">Copilot</span>
+    </div>
+    <span class="cop-chip has-critical" id="cop-chip">—</span>
+  </div>
+  <div class="cop-cards" id="cop-cards"></div>
+</div>
+
+<!-- COPILOT FLYOUT -->
+<div class="cop-overlay" id="cop-overlay" onclick="copCloseFlyout()"></div>
+<div class="cop-flyout" id="cop-flyout">
+  <div class="cop-fly-hdr">
+    <div class="cop-fly-hdr-left">
+      <span class="cop-icon">✦</span>
+      <div>
+        <div class="cop-fly-title">Copilot</div>
+        <div class="cop-fly-sub" id="cop-fly-sub">—</div>
+      </div>
+    </div>
+    <button class="cop-mob-back" onclick="copMobShowRail()" aria-label="Back to task list">← Tasks</button>
+    <button class="cop-fly-close" onclick="copCloseFlyout()">✕</button>
+  </div>
+  <div class="cop-fly-body">
+    <div class="cop-rail" id="cop-rail">
+      <div class="cop-rail-hdr">
+        <span>Alerts</span>
+        <button class="cop-rail-close" onclick="copCloseFlyout()" aria-label="Close">✕</button>
+      </div>
+      <div class="cop-rail-list" id="cop-rail-list"></div>
+    </div>
+    <div class="cop-detail">
+      <div class="cop-detail-scroll" id="cop-detail-scroll"></div>
+      <div class="cop-detail-footer" id="cop-detail-footer"></div>
+    </div>
+  </div>
+</div>
+
+<div class="widgets-col">
+
+<!-- ══════════════════════════════════════
+     WIDGET 0: TOTAL VALUE IN JEOPARDY
+     ══════════════════════════════════════ -->
+<div class="widget">
+  <div class="summary-grid">
+    <div class="summary-card urg-warn" onclick="scrollToWidget('rda')">
+      <div class="summary-card-label">Track Delayed Returns</div>
+      <div class="summary-card-value orange">₹7.3L</div>
+      <button class="summary-card-cta">View Details →</button>
+    </div>
+    <div class="summary-card urg-warn" onclick="scrollToWidget('restock')">
+      <div class="summary-card-label">Process Pending Restocks</div>
+      <div class="summary-card-value amber">₹52.0L</div>
+      <button class="summary-card-cta">View Details →</button>
+    </div>
+    <div class="summary-card urg-critical" onclick="scrollToWidget('disputed')">
+      <div class="summary-card-label">Resolve Open Disputes</div>
+      <div class="summary-card-value red">₹9.0L</div>
+      <button class="summary-card-cta">View Details →</button>
+    </div>
+    <div class="summary-card urg-critical" onclick="scrollToWidget('claims')">
+      <div class="summary-card-label">Respond to SPF Claims</div>
+      <div class="summary-card-value dark-red">₹121.6L</div>
+      <button class="summary-card-cta">View Details →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     WIDGET 1: RETURN DELIVERY ASSURANCE
+     ══════════════════════════════════════ -->
+<div class="widget" id="rda">
+
+  <!-- Header -->
+  <div class="widget-header">
+    <div class="header-left">
+      <div class="header-title">
+        Return Delivery Assurance
+        <span class="rda-info-btn" id="rda-info-trigger" tabindex="0">i</span>
+      </div>
+      <div class="header-sub">Returns Intelligence Platform · v10</div>
+    </div>
+    <div class="header-right" style="flex-direction:row;align-items:center;gap:12px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:11px;color:#888;">📍 Facility:</span>
+        <select class="facility-select">
+          <option>All</option><option>Mumbai WH</option><option>Delhi WH</option><option>Bangalore WH</option>
+        </select>
+      </div>
+      <div class="refresh-ts">↻ 08:00 AM
+        <div class="ts-tooltip">Data last refreshed at 08:00 AM, 3rd Mar 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info tooltip overlay -->
+  <div class="rda-info-overlay" id="rda-info-overlay">
+    <div class="rda-info-panel">
+      <div class="rda-info-close" onclick="document.getElementById('rda-info-overlay').classList.remove('open')">✕</div>
+      <div class="rda-info-title">Return Delivery Assurance</div>
+      <div class="rda-info-body">
+        <p>Monitors return shipments across two handoff stages. Expected counts are pulled from the Marketplace API — no manual imports needed.</p>
+        <div class="rda-gap-def">
+          <div class="rda-gap-label">Gap 1 — Picked up from customer → Delivered to warehouse</div>
+          <div class="rda-gap-text">Returns the courier has picked up from the customer but has not yet delivered to the warehouse. <strong>Action: contact the courier.</strong></div>
+        </div>
+        <div class="rda-gap-def">
+          <div class="rda-gap-label">Gap 2 — Delivered to warehouse → Received in WMS</div>
+          <div class="rda-gap-text">Returns the courier has physically delivered to the warehouse but the WMS has not yet scanned or acknowledged receipt. <strong>Action: contact the facility.</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two gap cards -->
+  <div class="rda-gap-cards">
+
+    <div class="rda-gap-card gap1">
+      <div class="rda-gap-card-label">PICKED UP · NOT YET AT WAREHOUSE · LAST 30 DAYS</div>
+      <div class="rda-gap-body">
+        <div class="rda-gap-metrics">
+          <div class="rda-gap-metric">
+            <div class="rda-gap-num">78</div>
+            <div class="rda-gap-unit">returns pending</div>
+          </div>
+          <div class="rda-gap-divider"></div>
+          <div class="rda-gap-metric">
+            <div class="rda-gap-num rda-val-amber">₹2.7L</div>
+            <div class="rda-gap-unit">value at risk</div>
+          </div>
+        </div>
+        <button class="rda-gap-cta gap1-cta">Take Action →</button>
+      </div>
+    </div>
+
+    <div class="rda-gap-card gap2">
+      <div class="rda-gap-card-label">DELIVERED TO WH · NOT YET IN WMS · LAST 30 DAYS</div>
+      <div class="rda-gap-body">
+        <div class="rda-gap-metrics">
+          <div class="rda-gap-metric">
+            <div class="rda-gap-num">234</div>
+            <div class="rda-gap-unit">returns pending</div>
+          </div>
+          <div class="rda-gap-divider"></div>
+          <div class="rda-gap-metric">
+            <div class="rda-gap-num rda-val-red">₹4.57L</div>
+            <div class="rda-gap-unit">value at risk</div>
+          </div>
+        </div>
+        <button class="rda-gap-cta gap2-cta">Take Action →</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Open gaps section -->
+  <div class="rda-open-gaps">
+    <div class="rda-open-gaps-header">
+      <span class="rda-section-label">Open gaps</span>
+      <span class="rda-section-hint">Sorted by ₹ impact · Click row to act</span>
+    </div>
+
+    <div class="rda-gaps-grid">
+      <!-- Gap 1 column -->
+      <div class="rda-gaps-col">
+        <div class="rda-gaps-col-hdr">
+          <span class="rda-gaps-col-title">🚚 Picked up · Not yet at warehouse</span>
+          <span class="rda-gaps-col-count" id="gaps-count-gap1"></span>
+        </div>
+        <div class="rda-gaps-col-note">* Excludes last 72h — normal transit time</div>
+        <div id="gaps-body-gap1"></div>
+      </div>
+      <!-- Gap 2 column -->
+      <div class="rda-gaps-col">
+        <div class="rda-gaps-col-hdr">
+          <span class="rda-gaps-col-title">🏭 Delivered to warehouse · Not yet in WMS</span>
+          <span class="rda-gaps-col-count" id="gaps-count-gap2"></span>
+        </div>
+        <div id="gaps-body-gap2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RDA Flyout -->
+  <div class="rda-flyout-overlay" id="rda-flyout-overlay" onclick="closeRdaFlyout()"></div>
+  <div class="rda-flyout-panel" id="rda-flyout-panel">
+    <div class="rda-flyout-hdr">
+      <div class="rda-flyout-hdr-left">
+        <div class="rda-flyout-title" id="rda-flyout-title"></div>
+        <div class="rda-flyout-summary" id="rda-flyout-summary"></div>
+      </div>
+      <div class="rda-flyout-hdr-right">
+        <div class="rda-lang-toggle">
+          <button class="rda-lang-btn active" id="rda-lang-en" onclick="rdaSetLang('en')">EN</button>
+          <button class="rda-lang-btn" id="rda-lang-hi" onclick="rdaSetLang('hi')">हिंदी</button>
+        </div>
+        <button class="rda-flyout-close" onclick="closeRdaFlyout()">✕</button>
+      </div>
+    </div>
+    <div class="rda-flyout-subhdr" id="rda-flyout-subhdr"></div>
+    <div class="rda-flyout-body" id="rda-flyout-body"></div>
+  </div>
+
+  <div id="rda-toast" class="rda-toast"></div>
+
+  <div class="rda-footer">
+    <div class="rda-footer-note">REFRESHED AUTOMATICALLY EVERY 8 HOURS &nbsp;·&nbsp; AMOUNTS IN INR LACS (₹L) &nbsp;·&nbsp; QTY IN UNITS</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     WIDGET 2: RETURN RESTOCK MONITOR
+     ══════════════════════════════════════ -->
+<div class="widget" id="restock">
+  <div class="widget-header">
+    <div class="header-left">
+      <div class="header-title">Return Restock Monitor</div>
+      <div class="header-sub">Last refreshed 6 hours ago</div>
+    </div>
+    <div class="header-right">
+      <div class="refresh-ts">↻ 02:00 AM
+        <div class="ts-tooltip">Data last refreshed at 02:00 AM, 3rd Mar 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="restock-summary">
+    <div class="restock-kpi">
+      <div class="restock-kpi-label"><span class="dot" style="background:#888;"></span>QC PENDING</div>
+      <div class="restock-kpi-value">₹22.3L</div>
+      <div class="restock-kpi-sub">228 units</div>
+    </div>
+    <div class="restock-kpi">
+      <div class="restock-kpi-label"><span class="dot" style="background:#16a34a;"></span>PENDING RESTOCK GOOD</div>
+      <div class="restock-kpi-value">₹18.2L</div>
+      <div class="restock-kpi-sub">186 units</div>
+    </div>
+    <div class="restock-kpi">
+      <div class="restock-kpi-label"><span class="dot" style="background:#dc2626;"></span>PENDING RESTOCK BAD</div>
+      <div class="restock-kpi-value">₹11.5L</div>
+      <div class="restock-kpi-sub">119 units</div>
+    </div>
+    <div class="restock-kpi" style="background:#f7f8fa;">
+      <div class="restock-kpi-label"><span class="dot" style="background:#111;"></span>TOTAL PENDENCY</div>
+      <div class="restock-kpi-value">₹52.0L</div>
+      <div class="restock-kpi-sub">533 units</div>
+      <button class="view-details-btn" onclick="openRestockFlyout()">VIEW DETAILS →</button>
+    </div>
+  </div>
+
+  <div class="restock-table-wrap">
+    <table class="restock-table">
+      <thead>
+        <tr>
+          <th style="text-align:left;">RECEIVING DATE</th>
+          <th>RECEIVED</th>
+          <th>RESTOCKED</th>
+          <th>PENDING</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Today -->
+        <tr>
+          <td>
+            <div class="date-cell" style="color:#2563eb;">Today</div>
+            <div class="date-sub">3 Mar</div>
+          </td>
+          <td><div class="mono-val">₹12.4L</div><div class="mono-sub">120 units</div></td>
+          <td><div class="mono-val">₹9.9L</div><div class="mono-sub">96 units · 80.0% of recv</div></td>
+          <td><div class="mono-val">₹2.5L</div><div class="mono-sub">24 units · 20.0% of recv</div></td>
+        </tr>
+        <!-- Yesterday -->
+        <tr>
+          <td>
+            <div class="date-cell">Yesterday</div>
+            <div class="date-sub">2 Mar</div>
+          </td>
+          <td><div class="mono-val">₹11.5L</div><div class="mono-sub">115 units</div></td>
+          <td><div class="mono-val">₹9.1L</div><div class="mono-sub">88 units · 76.5% of recv</div></td>
+          <td><div class="mono-val red">₹2.4L</div><div class="mono-sub red">27 units · 23.5% of recv</div></td>
+        </tr>
+        <!-- D-2 -->
+        <tr>
+          <td>
+            <div class="date-cell">D-2</div>
+            <div class="date-sub">1 Mar</div>
+          </td>
+          <td><div class="mono-val">₹10.8L</div><div class="mono-sub">110 units</div></td>
+          <td><div class="mono-val">₹8.0L</div><div class="mono-sub">82 units · 74.5% of recv</div></td>
+          <td><div class="mono-val red">₹2.8L</div><div class="mono-sub red">28 units · 25.5% of recv</div></td>
+        </tr>
+        <!-- D-3 -->
+        <tr>
+          <td>
+            <div class="date-cell">D-3</div>
+            <div class="date-sub">28 Feb</div>
+          </td>
+          <td><div class="mono-val">₹9.6L</div><div class="mono-sub">98 units</div></td>
+          <td><div class="mono-val">₹6.6L</div><div class="mono-sub">67 units · 68.4% of recv</div></td>
+          <td><div class="mono-val red">₹3.0L</div><div class="mono-sub red">31 units · 31.6% of recv</div></td>
+        </tr>
+        <!-- D-4 -->
+        <tr>
+          <td>
+            <div class="date-cell">D-4</div>
+            <div class="date-sub">27 Feb</div>
+          </td>
+          <td><div class="mono-val">₹10.2L</div><div class="mono-sub">105 units</div></td>
+          <td><div class="mono-val">₹6.9L</div><div class="mono-sub">71 units · 67.6% of recv</div></td>
+          <td><div class="mono-val red">₹3.3L</div><div class="mono-sub red">34 units · 32.4% of recv</div></td>
+        </tr>
+        <!-- D-5 -->
+        <tr>
+          <td>
+            <div class="date-cell">D-5</div>
+            <div class="date-sub">26 Feb</div>
+          </td>
+          <td><div class="mono-val">₹9.0L</div><div class="mono-sub">92 units</div></td>
+          <td><div class="mono-val">₹5.7L</div><div class="mono-sub">58 units · 63.0% of recv</div></td>
+          <td><div class="mono-val red">₹3.3L</div><div class="mono-sub red">34 units · 37.0% of recv</div></td>
+        </tr>
+        <!-- D-6 to D-30 aggregate -->
+        <tr class="agg-row">
+          <td>
+            <div class="date-cell" style="color:#b45309;">D-6 to D-30</div>
+            <div class="date-sub">25 Jan – 25 Feb</div>
+          </td>
+          <td><div class="mono-val">₹190.4L</div><div class="mono-sub">1,950 units</div></td>
+          <td><div class="mono-val red">₹155.7L</div><div class="mono-sub red">1,595 units · 81.8% of recv</div></td>
+          <td><div class="mono-val red">₹34.7L</div><div class="mono-sub red">355 units · 18.2% of recv</div></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td style="text-align:left;">GRAND TOTAL</td>
+          <td><div class="mono-val">₹253.9L</div><div class="mono-sub">2,590 units</div></td>
+          <td><div class="mono-val red">₹201.9L</div><div class="mono-sub">2,057 units</div></td>
+          <td><div class="mono-val red">₹52.0L</div><div class="mono-sub">533 units</div></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="rda-footer">
+    <div class="rda-footer-note">Refreshed automatically every 8 hours</div>
+    <div class="rda-footer-note">Amounts in INR Lacs (₹L) &nbsp;·&nbsp; Qty in Units</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     WIDGET 3: DISPUTED RETURNS
+     ══════════════════════════════════════ -->
+<div class="widget" id="disputed">
+  <div class="widget-header">
+    <div class="header-left">
+      <div class="header-title">Disputed Returns</div>
+      <div class="header-sub">Track disputed returns and file SPF claims on time to prevent return losses</div>
+    </div>
+    <div class="header-right">
+      <div class="refresh-ts">↻ 2:05 PM
+        <div class="ts-tooltip">Data last refreshed at 2:05 PM, 3rd Mar 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banner -->
+  <div class="disputed-banner">
+    <div class="banner-left">
+      <div class="banner-unresolvedlabel"><span class="red-dot"></span>UNRESOLVED</div>
+      <div class="banner-total-val">₹9.0 L</div>
+      <div class="banner-pending-label">Pending action</div>
+    </div>
+    <div class="banner-pills">
+      <div class="banner-pill" onclick="openDisputedFlyout('new')">
+        <div class="pill-label">New</div>
+        <div class="pill-val">₹2.9 L</div>
+        <div class="pill-units">5,000 units</div>
+        <span class="pill-arrow">↗</span>
+      </div>
+      <div class="pill-sep"></div>
+      <div class="banner-pill" onclick="openDisputedFlyout('active')">
+        <div class="pill-label">Active</div>
+        <div class="pill-val">₹6.0 L</div>
+        <div class="pill-units">80,000 units</div>
+        <span class="pill-arrow">↗</span>
+      </div>
+      <div class="pill-sep bold"></div>
+      <div class="banner-pill" onclick="openDisputedFlyout('critical')">
+        <div class="pill-label" style="color:#b91c1c;">Critical</div>
+        <div class="pill-val" style="color:#b91c1c;">₹1.0 L</div>
+        <div class="pill-units">1,000 units</div>
+        <span class="pill-arrow">↗</span>
+      </div>
+    </div>
+    <div class="banner-cta-wrap">
+      <button class="view-items-btn" onclick="openDisputedFlyout('all')">View items →</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="disputed-table-section">
+    <table class="disputed-table">
+      <thead>
+        <tr>
+          <th>DISPUTE TYPE</th>
+          <th>NEW<br><span class="col-sub">Created in last 2D</span></th>
+          <th>ACTIVE<br><span class="col-sub">Expiry &gt; 7D</span></th>
+          <th style="color:#b91c1c;">CRITICAL<br><span class="col-sub" style="color:#f87171;">Expiry &lt; 7D</span></th>
+          <th class="col-unresolved">UNRESOLVED<br><span class="col-sub" style="color:#f87171;">Pending action</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="row-label-disputed">
+            <div class="row-tooltip-wrap">
+              Missing Returns
+              <div class="row-tooltip-content">
+                <div class="tooltip-title">Missing Returns <button class="know-more-btn">Know More</button></div>
+                <div class="tooltip-def">Marked delivered by courier, not received at warehouse.</div>
+              </div>
+            </div>
+          </td>
+          <td><button class="dis-cell-btn" onclick="openDisputedFlyout('new','missing')"><span class="arrow-icon">↗</span><div class="dis-val">₹2.1 L</div><div class="dis-units">3,200 units</div></button></td>
+          <td><button class="dis-cell-btn" onclick="openDisputedFlyout('active','missing')"><span class="arrow-icon">↗</span><div class="dis-val">₹3.5 L</div><div class="dis-units">42,000 units</div></button></td>
+          <td><button class="dis-cell-btn" onclick="openDisputedFlyout('critical','missing')"><span class="arrow-icon">↗</span><div class="dis-val red">₹0.4 L</div><div class="dis-units">380 units</div></button></td>
+          <td class="col-unresolved"><button class="dis-cell-btn" onclick="openDisputedFlyout('all','missing')"><span class="arrow-icon">↗</span><div class="dis-val red">₹6.0 L</div><div class="dis-units">45,580 units</div></button></td>
+        </tr>
+        <tr>
+          <td class="row-label-disputed">
+            <div class="row-tooltip-wrap">
+              Quality Issues
+              <div class="row-tooltip-content">
+                <div class="tooltip-title">Quality Issues <button class="know-more-btn">Know More</button></div>
+                <div class="tooltip-def">Received item is damaged and non-refurbishable.</div>
+              </div>
+            </div>
+          </td>
+          <td><button class="dis-cell-btn" onclick="openDisputedFlyout('new','quality')"><span class="arrow-icon">↗</span><div class="dis-val">₹0.5 L</div><div class="dis-units">1,100 units</div></button></td>
+          <td><button class="dis-cell-btn" onclick="openDisputedFlyout('active','quality')"><span class="arrow-icon">↗</span><div class="dis-val">₹1.8 L</div><div class="dis-units">24,500 units</div></button></td>
+          <td><button class="dis-cell-btn" onclick="openDisputedFlyout('critical','quality')"><span class="arrow-icon">↗</span><div class="dis-val red">₹0.4 L</div><div class="dis-units">420 units</div></button></td>
+          <td class="col-unresolved"><button class="dis-cell-btn" onclick="openDisputedFlyout('all','quality')"><span class="arrow-icon">↗</span><div class="dis-val red">₹2.7 L</div><div class="dis-units">26,020 units</div></button></td>
+        </tr>
+        <tr>
+          <td class="row-label-disputed">
+            <div class="row-tooltip-wrap">
+              Overdue Returns
+              <div class="row-tooltip-content">
+                <div class="tooltip-title">Overdue Returns <button class="know-more-btn">Know More</button></div>
+                <div class="tooltip-def">Not received at warehouse; waiting threshold exceeded.</div>
+              </div>
+            </div>
+          </td>
+          <td><button class="dis-cell-btn" onclick="openDisputedFlyout('new','overdue')"><span class="arrow-icon">↗</span><div class="dis-val">₹0.3 L</div><div class="dis-units">700 units</div></button></td>
+          <td><button class="dis-cell-btn" onclick="openDisputedFlyout('active','overdue')"><span class="arrow-icon">↗</span><div class="dis-val">₹0.7 L</div><div class="dis-units">13,500 units</div></button></td>
+          <td><button class="dis-cell-btn" onclick="openDisputedFlyout('critical','overdue')"><span class="arrow-icon">↗</span><div class="dis-val red">₹0.2 L</div><div class="dis-units">200 units</div></button></td>
+          <td class="col-unresolved"><button class="dis-cell-btn" onclick="openDisputedFlyout('all','overdue')"><span class="arrow-icon">↗</span><div class="dis-val red">₹1.2 L</div><div class="dis-units">14,400 units</div></button></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td style="text-align:left;">Grand Total</td>
+          <td>₹2.9 L<div style="font-size:10px;color:#999;font-family:'JetBrains Mono',monospace;margin-top:2px;">5,000 units</div></td>
+          <td>₹6.0 L<div style="font-size:10px;color:#999;font-family:'JetBrains Mono',monospace;margin-top:2px;">80,000 units</div></td>
+          <td style="color:#b91c1c;">₹1.0 L<div style="font-size:10px;color:#999;font-family:'JetBrains Mono',monospace;margin-top:2px;">1,000 units</div></td>
+          <td class="col-unresolved" style="color:#b91c1c;">₹9.0 L<div style="font-size:10px;color:#999;font-family:'JetBrains Mono',monospace;margin-top:2px;">86,000 units</div></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     WIDGET 4: ACTIVE CLAIM MONITOR
+     ══════════════════════════════════════ -->
+<div class="widget" id="claims">
+  <div class="widget-header">
+    <div class="header-left">
+      <div class="header-title">Active Claim Monitor – Claims Under Management</div>
+      <div class="header-sub">Seller Protection Fund · Return Claims</div>
+    </div>
+    <div class="header-right">
+      <div class="refresh-ts">↻ Last refreshed: 2 min ago
+        <div class="ts-tooltip">Data last refreshed at 2:03 PM, 3rd Mar 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="claim-risk-section">
+    <div class="claim-risk-cards">
+      <div class="claim-risk-card action" onclick="openClaimFlyout('All','action')">
+        <div>
+          <div class="claim-risk-card-label">⚠ Pending Action</div>
+          <div class="claim-risk-value">₹48.7L</div>
+          <div class="claim-risk-sub"><strong>129 claims</strong> · Response requested</div>
+        </div>
+        <button class="claim-risk-cta">View Items →</button>
+      </div>
+      <div class="claim-risk-card ageing" onclick="openClaimFlyout('All','review')">
+        <div>
+          <div class="claim-risk-card-label">⏳ Ageing Under Review</div>
+          <div class="claim-risk-value">₹48.7L</div>
+          <div class="claim-risk-sub"><strong>129 claims</strong> · Open &gt; 30 days</div>
+        </div>
+        <button class="claim-risk-cta">View Items →</button>
+      </div>
+      <div class="claim-risk-card jeopardy" onclick="openClaimFlyout('All','rejected')">
+        <div>
+          <div class="claim-risk-card-label">✕ Recently Rejected</div>
+          <div class="claim-risk-value">₹24.2L</div>
+          <div class="claim-risk-sub"><strong>64 claims</strong> · Last 7 days</div>
+        </div>
+        <button class="claim-risk-cta">View Items →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="claim-matrix-section">
+    <div class="claim-matrix-header">
+      <div class="claim-matrix-label">Status Breakdown</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:11px;color:#888;">Showing</span>
+        <select class="timeline-select" id="claim-timeline">
+          <option value="7">Last 7 Days</option>
+          <option value="15">Last 15 Days</option>
+          <option value="30" selected>Last 30 Days</option>
+          <option value="60">Last 60 Days</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="claim-matrix-wrap">
+    <table class="claim-matrix">
+      <thead>
+        <tr>
+          <th style="text-align:left;">Claim Type</th>
+          <th>Under Review</th>
+          <th>Approved</th>
+          <th style="color:#dc2626;background:#fff8f8;">Rejected</th>
+          <th class="col-action-h">Pending Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="claim-row-label">Missing Returns</td>
+          <td><button class="claim-cell-btn" onclick="openClaimFlyout('Missing Returns','review')"><span class="arrow-icon">↗</span><div class="claim-count">184</div><div class="claim-val">₹69.4L</div></button></td>
+          <td><button class="claim-cell-btn" onclick="openClaimFlyout('Missing Returns','approved')"><span class="arrow-icon">↗</span><div class="claim-count" style="color:#16a34a;">71</div><div class="claim-val">₹26.8L</div></button></td>
+          <td><button class="claim-cell-btn" onclick="openClaimFlyout('Missing Returns','rejected')"><span class="arrow-icon">↗</span><div class="claim-count" style="color:#dc2626;">28</div><div class="claim-val">₹10.6L</div></button></td>
+          <td class="col-action-td"><button class="claim-cell-btn" onclick="openClaimFlyout('Missing Returns','action')"><span class="arrow-icon">↗</span><div class="claim-count">52</div><div class="claim-val">₹19.6L</div></button></td>
+        </tr>
+        <tr>
+          <td class="claim-row-label">Bad Returns</td>
+          <td><button class="claim-cell-btn" onclick="openClaimFlyout('Bad Returns','review')"><span class="arrow-icon">↗</span><div class="claim-count">167</div><div class="claim-val">₹63.1L</div></button></td>
+          <td><button class="claim-cell-btn" onclick="openClaimFlyout('Bad Returns','approved')"><span class="arrow-icon">↗</span><div class="claim-count" style="color:#16a34a;">59</div><div class="claim-val">₹22.3L</div></button></td>
+          <td><button class="claim-cell-btn" onclick="openClaimFlyout('Bad Returns','rejected')"><span class="arrow-icon">↗</span><div class="claim-count" style="color:#dc2626;">21</div><div class="claim-val">₹7.9L</div></button></td>
+          <td class="col-action-td"><button class="claim-cell-btn" onclick="openClaimFlyout('Bad Returns','action')"><span class="arrow-icon">↗</span><div class="claim-count">48</div><div class="claim-val">₹18.1L</div></button></td>
+        </tr>
+        <tr>
+          <td class="claim-row-label">Delayed Returns</td>
+          <td><button class="claim-cell-btn" onclick="openClaimFlyout('Delayed Returns','review')"><span class="arrow-icon">↗</span><div class="claim-count">134</div><div class="claim-val">₹50.6L</div></button></td>
+          <td><button class="claim-cell-btn" onclick="openClaimFlyout('Delayed Returns','approved')"><span class="arrow-icon">↗</span><div class="claim-count" style="color:#16a34a;">26</div><div class="claim-val">₹9.8L</div></button></td>
+          <td><button class="claim-cell-btn" onclick="openClaimFlyout('Delayed Returns','rejected')"><span class="arrow-icon">↗</span><div class="claim-count" style="color:#dc2626;">15</div><div class="claim-val">₹5.7L</div></button></td>
+          <td class="col-action-td"><button class="claim-cell-btn" onclick="openClaimFlyout('Delayed Returns','action')"><span class="arrow-icon">↗</span><div class="claim-count">29</div><div class="claim-val">₹11.0L</div></button></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>Grand Total</td>
+          <td>485 · ₹183.1L</td>
+          <td style="color:#16a34a;">156 · ₹58.9L</td>
+          <td style="color:#dc2626;">64 · ₹24.2L</td>
+          <td class="col-action-td" style="color:#d97706;">129 · ₹48.7L</td>
+        </tr>
+      </tfoot>
+    </table>
+    </div><!-- /claim-matrix-wrap -->
+  </div>
+</div>
+
+</div><!-- /widgets-col -->
+
+</div><!-- /page-body -->
+
+<!-- ── FLYOUT OVERLAY ── -->
+<div class="overlay" id="overlay" onclick="closeFlyout()"></div>
+
+<!-- ── FLYOUT PANEL ── -->
+<div class="flyout" id="flyout">
+  <div class="flyout-header">
+    <div class="flyout-header-left">
+      <div class="flyout-title">
+        <span id="flyout-title-text">—</span>
+        <span class="flyout-status-badge" id="flyout-badge"></span>
+      </div>
+      <div class="flyout-sub" id="flyout-sub"></div>
+    </div>
+    <div class="flyout-header-right">
+      <div class="flyout-lang-toggle">
+        <button class="flyout-lang-btn active" id="flyout-lang-en" onclick="flyoutSetLang('en')">EN</button>
+        <button class="flyout-lang-btn" id="flyout-lang-hi" onclick="flyoutSetLang('hi')">हिंदी</button>
+      </div>
+      <button class="flyout-close" onclick="closeFlyout()">✕</button>
+    </div>
+  </div>
+  <div class="flyout-subhdr-bar" id="flyout-subhdr-bar"></div>
+  <div class="flyout-body" id="flyout-body"></div>
+  <div class="flyout-footer">
+    <div class="footer-note" id="flyout-note"></div>
+    <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+  </div>
+</div>
+
+<div class="shared-toast" id="shared-toast"></div>
+
+<script>
+  /* ─── helpers ─── */
+  const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+  const pad  = n => String(n).padStart(2,'0');
+  function pastDate(d) {
+    const dt = new Date(); dt.setDate(dt.getDate()-rand(1,d));
+    return `${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()}`;
+  }
+  const platLabels  = {fk:'Flipkart',amz:'Amazon',msh:'Meesho',myn:'Myntra'};
+  const platDots    = {fk:'#f59e0b',amz:'#f97316',msh:'#a855f7',myn:'#f43f5e'};
+  const platPortals = {fk:'https://seller.flipkart.com',amz:'https://sellercentral.amazon.in',msh:'https://seller.meesho.com',myn:'https://myntra.com/seller'};
+  const shippers    = ['Delhivery','BlueDart','Ecom Express','XpressBees','DTDC','Shadowfax'];
+  let currentRows = [], currentContext = {};
+
+  function platTag(p){ return `<span class="plat-tag"><span style="width:6px;height:6px;border-radius:50%;background:${platDots[p]};display:inline-block;"></span>${platLabels[p]}</span>`; }
+
+  function genClaimRows(count) {
+    const plats = Object.keys(platLabels);
+    return Array.from({length:Math.min(count,15)},(_,i)=>({
+      orderId:`ORD-${rand(10000000,99999999)}`,
+      returnId:`RTN-${rand(1000000,9999999)}`,
+      plat:plats[i%plats.length],
+      shipper:shippers[i%shippers.length],
+      amount:`₹${rand(500,8000).toLocaleString('en-IN')}`,
+      raised:pastDate(60), updated:pastDate(30),
+      days:rand(1,45),
+    }));
+  }
+  function genRdaRows(count) {
+    const plats = Object.keys(platLabels);
+    return Array.from({length:Math.min(count,15)},(_,i)=>({
+      facility:['Mumbai WH','Delhi WH','Bangalore WH'][i%3],
+      orderId:`ORD-${rand(10000000,99999999)}`,
+      awb:`AWB-${rand(100000000,999999999)}`,
+      courier:shippers[i%shippers.length],
+      plat:plats[i%plats.length],
+      expected:pastDate(30), delivered:pastDate(20),
+      daysFilter:rand(0,12),
+      amount:`₹${rand(300,6000).toLocaleString('en-IN')}`,
+      status:['Expected','Delivered','Received'][i%3],
+    }));
+  }
+
+  /* ═══════════════════════════════════════════
+     RDA — RETURN DELIVERY ASSURANCE
+     Courier / Facility grouped gap rows
+     ═══════════════════════════════════════════ */
+
+  /* Info overlay */
+  document.getElementById('rda-info-trigger').addEventListener('click', () => {
+    document.getElementById('rda-info-overlay').classList.add('open');
+  });
+  document.getElementById('rda-info-overlay').addEventListener('click', function(e){
+    if (e.target === this) this.classList.remove('open');
+  });
+
+  /* Data */
+  const RDA_DATA = {
+    gap1: {
+      flyTitle:  'Returns Not Yet Delivered to Warehouse',
+      flySummary:'78 items · ₹2.7L at risk · Last 30 days',
+      flySubhdr: 'Courier Partner · Sorted by ₹ impact',
+      rows: [
+        { name:'Delhivery',   sub:'Oldest: 21 Feb · Avg 5 days in transit', items:28, rupees:96400,  val:'₹96.4K', pct:18, trend:-3, email:'ops-returns@delhivery.com' },
+        { name:'Ekart',       sub:'Oldest: 23 Feb · Avg 3 days in transit', items:22, rupees:75200,  val:'₹75.2K', pct:14, trend:-5, email:'returns@ekart.in' },
+        { name:'XpressBees',  sub:'Oldest: 24 Feb · Avg 2 days in transit', items:15, rupees:51800,  val:'₹51.8K', pct:10, trend:+2, email:'support@xpressbees.com' },
+        { name:'ATS',         sub:'Oldest: 20 Feb · Avg 7 days in transit', items:8,  rupees:32000,  val:'₹32K',   pct:22, trend:+4, email:'ops@ats-logistics.com' },
+        { name:'Valmo',       sub:'Oldest: 25 Feb · Avg 1 day in transit',  items:5,  rupees:18000,  val:'₹18K',   pct:8,  trend:-1, email:'support@valmo.in' },
+      ]
+    },
+    gap2: {
+      flyTitle:  'Returns Delivered — WMS Receipt Pending',
+      flySummary:'234 items · ₹4.57L at risk · Last 30 days',
+      flySubhdr: 'Facility · Sorted by ₹ impact',
+      rows: [
+        { name:'Bangalore',  sub:'Oldest unscanned: 21 Feb · Covers BLR, HYD, CHE, KOL, AHM FCs', items:106, rupees:228000, val:'₹2.28L', pct:18, trend:+4, email:'wm.blr@ops.com' },
+        { name:'Delhi NCR',  sub:'Oldest unscanned: 20 Feb · Covers DEL, LKO, JPR FCs',            items:71,  rupees:106000, val:'₹1.06L', pct:14, trend:+2, email:'wm.delhi@ops.com' },
+        { name:'Mumbai Hub', sub:'Oldest unscanned: 19 Feb · Covers MUM, PNE FCs',                 items:57,  rupees:123000, val:'₹1.23L', pct:15, trend:-7, email:'wm.mumbai@ops.com' },
+      ]
+    }
+  };
+
+  const RDA_SHOW_DEFAULT = 3;
+  let rdaCurrentLang  = 'en';
+  let rdaFlyoutState  = { gap: null, rows: null };
+
+  /* Language toggle */
+  function rdaSetLang(lang) {
+    rdaCurrentLang = lang;
+    document.getElementById('rda-lang-en').classList.toggle('active', lang === 'en');
+    document.getElementById('rda-lang-hi').classList.toggle('active', lang === 'hi');
+    if (rdaFlyoutState.gap) {
+      document.getElementById('rda-flyout-body').innerHTML =
+        rdaBuildFlyoutRows(rdaFlyoutState.gap, rdaFlyoutState.rows);
+    }
+  }
+
+  /* Message templates */
+  function rdaGetMessageEn(gap, name, items, value) {
+    const today = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    if (gap === 'gap1') {
+      return `Hi ${name} Team,\n\nWe have identified ${items} return shipments (${value}) that were picked up from customers and are currently with your courier, but have not yet been delivered to our warehouse as of ${today}.\n\nPlease note: this data excludes returns created in the last 3 days, as those are within normal transit time.\n\nCould you please investigate why these shipments are still in transit and share an expected delivery timeline? This is directly impacting our warehouse reconciliation.\n\nKindly respond at the earliest.\n\nRegards,\nOps & Finance Team`;
+    } else {
+      return `Hi ${name} Team,\n\nWe have identified ${items} return shipments (${value}) that have been delivered to your warehouse by the courier but have not yet been acknowledged as received in the WMS as of ${today}.\n\nCould you please investigate and confirm WMS receipt? This gap is impacting our financial reconciliation and needs immediate attention.\n\nKindly respond at the earliest.\n\nRegards,\nOps & Finance Team`;
+    }
+  }
+  function rdaGetMessageHi(gap, name, items, value) {
+    const today = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    if (gap === 'gap1') {
+      return `नमस्ते ${name} टीम,\n\nहमने ${items} रिटर्न शिपमेंट (${value}) की पहचान की है जो ग्राहकों से पिक अप किए गए हैं और वर्तमान में आपके कूरियर के पास हैं, लेकिन ${today} तक हमारे वेयरहाउस में डिलीवर नहीं हुए हैं।\n\nकृपया ध्यान दें: यह डेटा पिछले 3 दिनों में बनाए गए रिटर्न को शामिल नहीं करता, क्योंकि वे सामान्य ट्रांजिट समय के भीतर माने जाते हैं।\n\nकृपया जांच करें कि ये शिपमेंट अभी भी ट्रांजिट में क्यों हैं और एक अपेक्षित डिलीवरी टाइमलाइन साझा करें।\n\nकृपया जल्द से जल्द उत्तर दें।\n\nसादर,\nऑप्स और फाइनेंस टीम`;
+    } else {
+      return `नमस्ते ${name} टीम,\n\nहमने ${items} रिटर्न शिपमेंट (${value}) की पहचान की है जो कूरियर द्वारा आपके वेयरहाउस में डिलीवर किए गए हैं, लेकिन ${today} तक WMS में प्राप्त के रूप में स्वीकृत नहीं हुए हैं।\n\nकृपया जांच करें और WMS रसीद की पुष्टि करें।\n\nकृपया जल्द से जल्द उत्तर दें।\n\nसादर,\nऑप्स और फाइनेंस टीम`;
+    }
+  }
+  function rdaGetMessage(gap, name, items, value) {
+    return rdaCurrentLang === 'hi'
+      ? rdaGetMessageHi(gap, name, items, value)
+      : rdaGetMessageEn(gap, name, items, value);
+  }
+
+  /* Render issue rows into the two columns */
+  function rdaRenderGaps() {
+    ['gap1','gap2'].forEach(gap => {
+      const d     = RDA_DATA[gap];
+      const label = gap === 'gap1' ? 'courier' : 'facility';
+      const total = d.rows.length;
+      document.getElementById('gaps-count-' + gap).textContent =
+        total + ' ' + label + (total !== 1 ? 's' : '');
+
+      const rowsHTML = d.rows.map((r, i) => {
+        const hidden = i >= RDA_SHOW_DEFAULT
+          ? ' class="rda-issue-row rda-extra-row" style="display:none"'
+          : ' class="rda-issue-row"';
+        const pctLabel = gap === 'gap1' ? 'undelivered' : 'unscanned';
+        const pctStr   = (r.pct < 1 ? r.pct : Math.round(r.pct)) + '% ' + pctLabel;
+        const sub      = `${pctStr} · ${r.sub}`;
+        const abs = Math.abs(r.trend);
+        let trendCls, trendWord, trendArrow;
+        if (abs < 0.3)       { trendCls='flat';   trendWord='Stable';    trendArrow='→'; }
+        else if (r.trend > 0){ trendCls='worse';  trendWord='Worsening'; trendArrow='↑'; }
+        else                  { trendCls='better'; trendWord='Improving'; trendArrow='↓'; }
+        const valCls = r.rupees >= 100000 ? 'hi' : '';
+        return `<div${hidden} data-gap="${gap}" onclick="rdaOpenFlyoutRow('${gap}',${i})">
+          <div class="rda-issue-name">
+            <div class="rda-issue-name-main">${r.name}</div>
+            <div class="rda-issue-name-sub">${sub}</div>
+          </div>
+          <span class="rda-issue-items">${r.items} items</span>
+          <div class="rda-issue-trend ${trendCls}">
+            <span class="rda-issue-trend-label">${trendArrow} ${trendWord}</span>
+            <span class="rda-issue-trend-sub">vs last wk</span>
+          </div>
+          <span class="rda-issue-val ${valCls}">${r.val}</span>
+        </div>`;
+      }).join('');
+
+      const extra = total - RDA_SHOW_DEFAULT;
+      const expandHTML = extra > 0
+        ? `<div class="rda-gaps-expand" id="rda-expand-${gap}" data-expanded="false"
+             onclick="rdaToggleExpand('${gap}')">↓ Show ${extra} more</div>`
+        : '';
+      document.getElementById('gaps-body-' + gap).innerHTML = rowsHTML + expandHTML;
+    });
+  }
+
+  function rdaToggleExpand(gap) {
+    const btn      = document.getElementById('rda-expand-' + gap);
+    const expanded = btn.dataset.expanded === 'true';
+    document.querySelectorAll(`.rda-extra-row[data-gap="${gap}"]`)
+      .forEach(el => el.style.display = expanded ? 'none' : 'flex');
+    btn.dataset.expanded = expanded ? 'false' : 'true';
+    const n = document.querySelectorAll(`.rda-extra-row[data-gap="${gap}"]`).length;
+    btn.textContent = expanded ? `↓ Show ${n} more` : '↑ Show less';
+  }
+
+  /* ── RDA action-loop state ── */
+  const _rdaActioned = new Set();
+  const _rdaSnoozed  = new Set();
+  function rdaIsArchived(key) { return _rdaActioned.has(key) || _rdaSnoozed.has(key); }
+  function rdaAcStatus(key)   { return _rdaActioned.has(key) ? 'done' : _rdaSnoozed.has(key) ? 'snoozed' : null; }
+  function rdaMarkDone(key)   { _rdaActioned.add(key); _rdaSnoozed.delete(key); rdaReRender(); }
+  function rdaSnooze(key)     { _rdaSnoozed.add(key); _rdaActioned.delete(key); rdaReRender(); }
+  function rdaRestore(key)    { _rdaActioned.delete(key); _rdaSnoozed.delete(key); rdaReRender(); }
+  function rdaMarkDoneAfterAction(key) { setTimeout(() => rdaMarkDone(key), 800); }
+
+  let _rdaFlyoutRerender = null;
+  function rdaReRender() { if (_rdaFlyoutRerender) _rdaFlyoutRerender(); }
+
+  /* Build flyout rows (partner cards with message + actions + action loop) */
+  function rdaBuildFlyoutRows(gap, rows) {
+    const rowSpecs = rows.map(row => {
+      const globalIdx = RDA_DATA[gap].rows.indexOf(row);
+      const key       = `rda-${gap}-${globalIdx}`;
+      const msgFn     = () => rdaGetMessage(gap, row.name, row.items, row.val);
+      const subject   = encodeURIComponent(
+        gap === 'gap1'
+          ? `Action Required: Returns Delivery Gap — ${row.items} items (${row.val})`
+          : `Action Required: Warehouse Receipt Gap — ${row.items} items (${row.val})`
+      );
+      return { key, row, globalIdx, msgFn, subject };
+    });
+
+    const active   = rowSpecs.filter(s => !rdaIsArchived(s.key));
+    const archived = rowSpecs.filter(s =>  rdaIsArchived(s.key));
+    const archId   = `rda-arch-${gap}`;
+
+    const renderRow = (s, isArchived) => {
+      const { key, row, globalIdx, msgFn, subject } = s;
+      const msg     = msgFn();
+      const preview = msg.replace(/\n/g, ' ').substring(0, 160) + '…';
+      if (isArchived) {
+        const statusTag = rdaAcStatus(key) === 'done'
+          ? '<span class="ac-row-status-tag done">✓ Done</span>'
+          : '<span class="ac-row-status-tag snoozed">⏸ Snoozed</span>';
+        return `<div class="rda-flyout-row" style="opacity:.5;background:var(--c-gray-50);" data-key="${key}">
+          <div class="rda-flyout-row-top">
+            <div class="rda-flyout-row-name" style="text-decoration:line-through;color:var(--text-3)">${row.name}</div>
+            <div class="rda-flyout-row-stats">
+              <span class="rda-flyout-stat-count" style="color:var(--text-3)">${row.items} returns</span>
+              <span class="rda-flyout-stat-sep">·</span>
+              <span class="rda-flyout-stat-val" style="color:var(--text-3)">${row.val} pending</span>
+            </div>
+          </div>
+          ${statusTag}
+          <div class="ac-row-footer">
+            <span style="font-size:var(--t-xs);color:var(--text-3);">Action taken — archived</span>
+            <div class="ac-row-footer-actions">
+              <button class="ac-restore-btn" onclick="rdaRestore('${key}')">↩ Restore</button>
+            </div>
+          </div>
+        </div>`;
+      }
+      return `<div class="rda-flyout-row" data-key="${key}">
+        <div class="rda-flyout-row-top">
+          <div class="rda-flyout-row-name">${row.name}</div>
+          <div class="rda-flyout-row-stats">
+            <span class="rda-flyout-stat-count">${row.items} returns</span>
+            <span class="rda-flyout-stat-sep">·</span>
+            <span class="rda-flyout-stat-val">${row.val} pending</span>
+          </div>
+        </div>
+        <div class="rda-flyout-msg" id="rdamsg-${gap}-${globalIdx}">${preview}</div>
+        <div class="rda-flyout-msg-toggle" onclick="rdaToggleMsg('rdamsg-${gap}-${globalIdx}','${gap}',${globalIdx},this)">▼ Show full message</div>
+        <div class="rda-flyout-actions">
+          <a class="rda-flyout-btn mail rda-primary"
+             href="mailto:${row.email}?subject=${subject}&body=${encodeURIComponent(msg)}"
+             target="_blank"
+             onclick="rdaMarkDoneAfterAction('${key}')">✉ Send Mail</a>
+          <a class="rda-flyout-btn whatsapp"
+             href="https://wa.me/?text=${encodeURIComponent(msg)}"
+             target="_blank"
+             onclick="rdaMarkDoneAfterAction('${key}')">📲 WhatsApp</a>
+          <button class="rda-flyout-btn copylink"
+             onclick="rdaCopyLink('${gap}','${row.name}')">🔗 Copy Link</button>
+        </div>
+        <div class="ac-row-footer">
+          <span style="font-size:var(--t-xs);color:var(--text-3);">Close loop after acting above</span>
+          <div class="ac-row-footer-actions">
+            <button class="ac-snooze-btn" onclick="rdaSnooze('${key}')">Snooze</button>
+            <button class="ac-done-btn"   onclick="rdaMarkDone('${key}')">Mark done ✓</button>
+          </div>
+        </div>
+      </div>`;
+    };
+
+    const archHtml = archived.length ? `
+      <div class="flyout-archive-toggle" id="${archId}-toggle" onclick="flyoutToggleArchive('${archId}')">
+        <span class="flyout-archive-caret">▶</span>
+        Archived · ${archived.length}
+      </div>
+      <div class="flyout-archive-list" id="${archId}-list">
+        ${archived.map(s => renderRow(s, true)).join('')}
+      </div>` : '';
+
+    return active.map(s => renderRow(s, false)).join('') + archHtml;
+  }
+
+  /* Open flyout for full gap (all rows) */
+  function rdaOpenFlyout(gap) {
+    const d = RDA_DATA[gap];
+    rdaFlyoutState = { gap, rows: d.rows };
+    document.getElementById('rda-flyout-title').textContent   = d.flyTitle;
+    document.getElementById('rda-flyout-summary').textContent = d.flySummary;
+    document.getElementById('rda-flyout-subhdr').textContent  = d.flySubhdr;
+    _rdaFlyoutRerender = () => {
+      document.getElementById('rda-flyout-body').innerHTML = rdaBuildFlyoutRows(gap, d.rows);
+    };
+    _rdaFlyoutRerender();
+    document.getElementById('rda-flyout-overlay').classList.add('open');
+    document.getElementById('rda-flyout-panel').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  /* Open flyout for single row (clicked from issue row) */
+  function rdaOpenFlyoutRow(gap, i) {
+    const d   = RDA_DATA[gap];
+    const row = d.rows[i];
+    rdaFlyoutState = { gap, rows: [row] };
+    document.getElementById('rda-flyout-title').textContent   = d.flyTitle;
+    document.getElementById('rda-flyout-summary').textContent = `${row.name} · ${row.items} items · ${row.val}`;
+    document.getElementById('rda-flyout-subhdr').textContent  = gap === 'gap1' ? 'Courier Partner' : 'Facility';
+    _rdaFlyoutRerender = () => {
+      document.getElementById('rda-flyout-body').innerHTML = rdaBuildFlyoutRows(gap, [row]);
+    };
+    _rdaFlyoutRerender();
+    document.getElementById('rda-flyout-overlay').classList.add('open');
+    document.getElementById('rda-flyout-panel').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeRdaFlyout() {
+    document.getElementById('rda-flyout-overlay').classList.remove('open');
+    document.getElementById('rda-flyout-panel').classList.remove('open');
+    rdaFlyoutState = { gap: null, rows: null };
+    _rdaFlyoutRerender = null;
+    document.body.style.overflow = '';
+  }
+
+  function rdaToggleMsg(id, gap, ri, el) {
+    const box      = document.getElementById(id);
+    const expanded = box.classList.toggle('expanded');
+    const row      = RDA_DATA[gap].rows[ri];
+    if (expanded) {
+      box.textContent  = rdaGetMessage(gap, row.name, row.items, row.val).replace(/\n/g, ' • ');
+      el.textContent   = '▲ Hide message';
+    } else {
+      box.textContent  = rdaGetMessage(gap, row.name, row.items, row.val).replace(/\n/g, ' ').substring(0, 160) + '…';
+      el.textContent   = '▼ Show full message';
+    }
+  }
+
+  function rdaCopyLink(gap, name) {
+    const url = window.location.href.split('?')[0] + '?gap=' + gap + '&partner=' + encodeURIComponent(name);
+    navigator.clipboard.writeText(url).catch(() => {});
+    rdaShowToast('Link for ' + name + ' copied ✓');
+  }
+
+  function rdaShowToast(msg) {
+    const t = document.getElementById('rda-toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2600);
+  }
+
+  /* Wire KPI card buttons to open full flyout */
+  document.querySelector('.rda-gap-card.gap1').addEventListener('click', () => rdaOpenFlyout('gap1'));
+  document.querySelector('.rda-gap-card.gap2').addEventListener('click', () => rdaOpenFlyout('gap2'));
+
+  /* ═══════════════════════════════════════════════════════
+     PRIORITY ACTION BAR
+     Ranked by criticality score = value × urgency × deadline
+     Each card fires the correct flyout directly on click
+     ═══════════════════════════════════════════════════════ */
+
+  /* ═══════════════════════════════════════════════════════
+     COPILOT ENGINE — sidebar cards + split flyout
+     ═══════════════════════════════════════════════════════ */
+
+  function _today() {
+    return new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  }
+
+  const COP_TASKS = [
+    {
+      id:0, urgency:'critical',
+      title:'Returns Receiving SLA Breach',
+      value:'₹4.57L', badge:'SLA Breached', badgeCls:'critical',
+      source:'WH Operations · Returns Receiving · SLA Breach',
+      subtext:'234 return shipments across 10 FCs have breached their receiving SLAs',
+      type:'structured',
+      stakes:[
+        { icon:'&#9888;', text:'<strong>₹4.57L</strong> in untracked returns exposed to pilferage risk' },
+        { icon:'&#8987;', text:'SPF claim timeline running since <strong>courier delivery date</strong>' },
+      ],
+      trigger:'Reverse pickups and RTOs found where no manifest or putaway was created within the defined receiving SLA for the respective facility.',
+      facilities:[
+        { name:'Mumbai FC-1',    email:'ops.mumbai1@wh.com',  wa:'919100000001', phone:'919100000001', count:38, value:'₹0.82L', oldest:'19 Feb', cohort:{ d35:{count:14,val:'₹0.30L'}, d610:{count:16,val:'₹0.34L'}, d10p:{count:8, val:'₹0.18L'} } },
+        { name:'Delhi FC-2',     email:'ops.delhi2@wh.com',   wa:'919100000002', phone:'919100000002', count:31, value:'₹0.67L', oldest:'20 Feb', cohort:{ d35:{count:10,val:'₹0.22L'}, d610:{count:13,val:'₹0.28L'}, d10p:{count:8, val:'₹0.17L'} } },
+        { name:'Bangalore FC-1', email:'ops.blr1@wh.com',     wa:'919100000003', phone:'919100000003', count:27, value:'₹0.58L', oldest:'21 Feb', cohort:{ d35:{count:9, val:'₹0.19L'}, d610:{count:11,val:'₹0.24L'}, d10p:{count:7, val:'₹0.15L'} } },
+        { name:'Hyderabad FC-1', email:'ops.hyd1@wh.com',     wa:'919100000004', phone:'919100000004', count:24, value:'₹0.52L', oldest:'21 Feb', cohort:{ d35:{count:8, val:'₹0.18L'}, d610:{count:10,val:'₹0.21L'}, d10p:{count:6, val:'₹0.13L'} } },
+        { name:'Chennai FC-1',   email:'ops.che1@wh.com',     wa:'919100000005', phone:'919100000005', count:22, value:'₹0.47L', oldest:'22 Feb', cohort:{ d35:{count:7, val:'₹0.16L'}, d610:{count:9, val:'₹0.19L'}, d10p:{count:6, val:'₹0.12L'} } },
+        { name:'Pune FC-1',      email:'ops.pune1@wh.com',    wa:'919100000006', phone:'919100000006', count:19, value:'₹0.41L', oldest:'23 Feb', cohort:{ d35:{count:7, val:'₹0.15L'}, d610:{count:8, val:'₹0.17L'}, d10p:{count:4, val:'₹0.09L'} } },
+        { name:'Kolkata FC-1',   email:'ops.kol1@wh.com',     wa:'919100000007', phone:'919100000007', count:17, value:'₹0.37L', oldest:'23 Feb', cohort:{ d35:{count:6, val:'₹0.13L'}, d610:{count:7, val:'₹0.15L'}, d10p:{count:4, val:'₹0.09L'} } },
+        { name:'Ahmedabad FC-1', email:'ops.ahm1@wh.com',     wa:'919100000008', phone:'919100000008', count:16, value:'₹0.34L', oldest:'24 Feb', cohort:{ d35:{count:5, val:'₹0.11L'}, d610:{count:7, val:'₹0.15L'}, d10p:{count:4, val:'₹0.08L'} } },
+        { name:'Lucknow FC-1',   email:'ops.lko1@wh.com',     wa:'919100000009', phone:'919100000009', count:14, value:'₹0.30L', oldest:'24 Feb', cohort:{ d35:{count:5, val:'₹0.10L'}, d610:{count:6, val:'₹0.13L'}, d10p:{count:3, val:'₹0.07L'} } },
+        { name:'Jaipur FC-1',    email:'ops.jpr1@wh.com',     wa:'919100000010', phone:'919100000010', count:26, value:'₹0.09L', oldest:'28 Feb', cohort:{ d35:{count:4, val:'₹0.09L'}, d610:{count:0, val:'—'},        d10p:{count:0, val:'—'     } } },
+      ],
+      couriers:[
+        { name:'Delhivery',    email:'ops@delhivery.com',  wa:'919200000001', phone:'919200000001', count:72, value:'₹1.55L', oldest:'19 Feb', cohort:{ d35:{count:24,val:'₹0.52L'}, d610:{count:29,val:'₹0.62L'}, d10p:{count:19,val:'₹0.41L'} } },
+        { name:'Bluedart',     email:'ops@bluedart.com',   wa:'919200000002', phone:'919200000002', count:58, value:'₹1.25L', oldest:'20 Feb', cohort:{ d35:{count:19,val:'₹0.41L'}, d610:{count:23,val:'₹0.49L'}, d10p:{count:16,val:'₹0.35L'} } },
+        { name:'Ecom Express', email:'ops@ecomexpress.in', wa:'919200000003', phone:'919200000003', count:47, value:'₹1.01L', oldest:'21 Feb', cohort:{ d35:{count:16,val:'₹0.34L'}, d610:{count:18,val:'₹0.39L'}, d10p:{count:13,val:'₹0.28L'} } },
+        { name:'XpressBees',   email:'ops@xpressbees.com', wa:'919200000004', phone:'919200000004', count:34, value:'₹0.73L', oldest:'22 Feb', cohort:{ d35:{count:11,val:'₹0.24L'}, d610:{count:14,val:'₹0.30L'}, d10p:{count:9, val:'₹0.19L'} } },
+        { name:'DTDC',         email:'ops@dtdc.com',       wa:'919200000005', phone:'919200000005', count:23, value:'₹0.03L', oldest:'28 Feb', cohort:{ d35:{count:8, val:'₹0.17L'}, d610:{count:10,val:'₹0.22L'}, d10p:{count:5, val:'₹0.11L'} } },
+      ],
+      bulkEmail:'ops-heads@company.com',
+      bulkWA:'919300000099',
+      rows: [],
+      bulkSubject(){ return `ESCALATION: Returns Receiving SLA Breach — 234 Shipments · ₹4.57L at Risk · ${_today()}`; },
+      bulkMsg(){ const r=this.facilities.map(f=>`• ${f.name}: ${f.count} shipments · ${f.value}`).join('\n'); return `Dear FC Operations Heads,\n\nThis is a formal escalation regarding critical receiving SLA breaches across our fulfilment network as of ${_today()}.\n\nCURRENT STATUS:\n234 return shipments across 10 FCs have breached their receiving SLA. No manifest or putaway entry has been recorded despite confirmed courier delivery. Total value at risk: ₹4.57L.\n\nFC-WISE SUMMARY:\n${r}\n\nIMPACT IF UNRESOLVED:\n1. ₹4.57L in untracked inventory exposed to pilferage risk\n2. SPF claim timelines running from courier delivery date — further delay will result in claim rejection\n\nIMMEDIATE ACTION REQUIRED:\n1. Physical count of all pending return shipments at your facility\n2. Manifest entries for all received-but-unrecorded shipments\n3. Putaway completion for all QC-cleared units\n4. Compliance confirmation by EOD today\n\nNon-compliance will be escalated to the VP Supply Chain.\n\nRegards,\nSupply Chain Head`; },
+      msg(){ return this.bulkMsg(); },
+      to:'ops-heads@company.com',
+      subject:'',
+    },
+    {
+      id:1, urgency:'critical',
+      title:'Restocking SLA Breach',
+      value:'₹52.0L', badge:'SLA Breached', badgeCls:'critical',
+      source:'WH Operations · Return Restocking · SLA Breach',
+      subtext:'533 units across 10 FCs have breached their restocking SLA — QC and restock pending',
+      type:'restock_sla',
+      stakes:[
+        { icon:'&#128200;', text:'<strong>₹18.2L</strong> in Good returns not restocked — sellable inventory unavailable, sales being lost' },
+        { icon:'&#8987;',   text:'<strong>₹11.5L</strong> in Bad returns pending QC — SPF claim windows running, delay risks rejection' },
+        { icon:'&#128274;', text:'<strong>₹52.0L</strong> in total returns locked uninventoried across 10 facilities' },
+      ],
+      trigger:'Received returns were not restocked within the facility-configured SLA window.',
+      facilities:[
+        { name:'Mumbai FC-1',    email:'ops.mumbai1@wh.com',  wa:'919100000001', phone:'919100000001', qc:42, good:28, bad:19, total:89,  value:'₹9.4L',  goodVal:'₹3.1L', badVal:'₹2.2L', oldest:'19 Feb', cohort:{ d24:{count:28,val:'₹2.9L'}, d57:{count:38,val:'₹4.0L'}, d7p:{count:23,val:'₹2.5L'} } },
+        { name:'Delhi FC-2',     email:'ops.delhi2@wh.com',   wa:'919100000002', phone:'919100000002', qc:36, good:24, bad:16, total:76,  value:'₹8.1L',  goodVal:'₹2.7L', badVal:'₹1.8L', oldest:'20 Feb', cohort:{ d24:{count:24,val:'₹2.5L'}, d57:{count:31,val:'₹3.3L'}, d7p:{count:21,val:'₹2.3L'} } },
+        { name:'Bangalore FC-1', email:'ops.blr1@wh.com',     wa:'919100000003', phone:'919100000003', qc:31, good:21, bad:14, total:66,  value:'₹7.0L',  goodVal:'₹2.3L', badVal:'₹1.5L', oldest:'20 Feb', cohort:{ d24:{count:20,val:'₹2.1L'}, d57:{count:27,val:'₹2.9L'}, d7p:{count:19,val:'₹2.0L'} } },
+        { name:'Hyderabad FC-1', email:'ops.hyd1@wh.com',     wa:'919100000004', phone:'919100000004', qc:28, good:18, bad:12, total:58,  value:'₹6.2L',  goodVal:'₹2.0L', badVal:'₹1.3L', oldest:'21 Feb', cohort:{ d24:{count:18,val:'₹1.9L'}, d57:{count:24,val:'₹2.6L'}, d7p:{count:16,val:'₹1.7L'} } },
+        { name:'Chennai FC-1',   email:'ops.che1@wh.com',     wa:'919100000005', phone:'919100000005', qc:24, good:16, bad:11, total:51,  value:'₹5.4L',  goodVal:'₹1.7L', badVal:'₹1.2L', oldest:'21 Feb', cohort:{ d24:{count:16,val:'₹1.7L'}, d57:{count:21,val:'₹2.2L'}, d7p:{count:14,val:'₹1.5L'} } },
+        { name:'Pune FC-1',      email:'ops.pune1@wh.com',    wa:'919100000006', phone:'919100000006', qc:20, good:14, bad:9,  total:43,  value:'₹4.6L',  goodVal:'₹1.5L', badVal:'₹1.0L', oldest:'22 Feb', cohort:{ d24:{count:13,val:'₹1.4L'}, d57:{count:18,val:'₹1.9L'}, d7p:{count:12,val:'₹1.3L'} } },
+        { name:'Kolkata FC-1',   email:'ops.kol1@wh.com',     wa:'919100000007', phone:'919100000007', qc:18, good:12, bad:8,  total:38,  value:'₹4.0L',  goodVal:'₹1.3L', badVal:'₹0.9L', oldest:'22 Feb', cohort:{ d24:{count:12,val:'₹1.3L'}, d57:{count:16,val:'₹1.7L'}, d7p:{count:10,val:'₹1.0L'} } },
+        { name:'Ahmedabad FC-1', email:'ops.ahm1@wh.com',     wa:'919100000008', phone:'919100000008', qc:16, good:10, bad:7,  total:33,  value:'₹3.5L',  goodVal:'₹1.1L', badVal:'₹0.8L', oldest:'23 Feb', cohort:{ d24:{count:10,val:'₹1.1L'}, d57:{count:14,val:'₹1.5L'}, d7p:{count:9, val:'₹0.9L'} } },
+        { name:'Lucknow FC-1',   email:'ops.lko1@wh.com',     wa:'919100000009', phone:'919100000009', qc:14, good:9,  bad:6,  total:29,  value:'₹3.1L',  goodVal:'₹1.0L', badVal:'₹0.7L', oldest:'23 Feb', cohort:{ d24:{count:9, val:'₹1.0L'}, d57:{count:12,val:'₹1.3L'}, d7p:{count:8, val:'₹0.8L'} } },
+        { name:'Jaipur FC-1',    email:'ops.jpr1@wh.com',     wa:'919100000010', phone:'919100000010', qc:13, good:8,  bad:5,  total:26,  value:'₹2.8L',  goodVal:'₹0.9L', badVal:'₹0.6L', oldest:'24 Feb', cohort:{ d24:{count:8, val:'₹0.9L'}, d57:{count:11,val:'₹1.2L'}, d7p:{count:7, val:'₹0.7L'} } },
+      ],
+      bulkEmail:'ops-heads@company.com',
+      bulkWA:'919300000099',
+      rows:[],
+      bulkSubject(){ return `ESCALATION: Restocking SLA Breach — 533 Units · ₹52.0L at Risk · ${_today()}`; },
+      bulkMsg(){ const r=this.facilities.map(f=>`• ${f.name}: ${f.total} units · ${f.value} · QC: ${f.qc} · Good Restock: ${f.good} · Bad Restock: ${f.bad}`).join('\n'); return `Dear FC Operations Heads,\n\nThis is a formal escalation regarding critical restocking SLA breaches across our fulfilment network as of ${_today()}.\n\nCURRENT STATUS:\n533 return units across 10 FCs have not been restocked within the defined SLA window. The backlog spans QC pending, Good restock pending, and Bad restock pending stages. Total value at risk: ₹52.0L.\n\nFC-WISE SUMMARY:\n${r}\n\nIMPACT IF UNRESOLVED:\n1. ₹18.2L in Good returns remain unsellable — active loss of sales\n2. ₹11.5L in Bad returns pending QC — SPF claim windows running, delay risks rejection\n3. ₹52.0L in working capital locked in uninventoried stock\n\nIMMEDIATE ACTION REQUIRED:\n1. Clear QC queue for all pending return units\n2. Restock all QC-passed Good returns as sellable inventory\n3. Restock all QC-failed Bad returns as unsellable inventory\n4. Compliance confirmation by EOD today\n\nNon-compliance will be escalated to the VP Supply Chain.\n\nRegards,\nSupply Chain Head`; },
+      msg(){ return this.bulkMsg(); },
+      to:'ops-heads@company.com',
+      subject:'',
+    },
+    {
+      id:2, urgency:'critical',
+      title:'Respond to Meesho — 28 Bad Return claims',
+      subtext:'Meesho is waiting on your response. No reply means automatic rejection.',
+      value:'₹10.6L', badge:'Act now', badgeCls:'critical',
+      source:'Active Claims · Bad Returns · Pending Action',
+      type:'structured',
+      stakes:[
+        { icon:'&#9888;', text:'<strong>₹10.6L</strong> in Bad Return claims will be auto-rejected with no appeal window' },
+        { icon:'&#8987;', text:'Meesho response deadline is running — <strong>no buffer remaining</strong>' },
+      ],
+      trigger:'28 Bad Return claims flagged as Pending Action by Meesho. No seller response recorded. Marketplace will auto-reject if unanswered.',
+      rows:[
+        { name:'Meesho Claims Team', role:'Claims Portal', email:'seller@meesho.com', wa:'919400000001', phone:'919400000001',
+          portal:'https://seller.meesho.com',
+          detail:'28 claims · ₹10.6L · Quality claims · Photo evidence required · Oldest: 6 Feb' },
+      ],
+      reason:'Meesho has flagged <strong>28 claims as Pending Action</strong> — they are waiting on your response. No response means automatic rejection. <strong>₹10.6L</strong> is at risk with no deadline buffer.',
+      to:'seller@meesho.com', portal:'https://seller.meesho.com',
+      subject:'Action Required: Bad Return Claims Response — 28 claims on Meesho',
+      msg(){return`Hi Meesho Claims Team,\n\nWe are writing regarding 28 Bad Return claims (₹10.6L) flagged as Pending Action as of ${_today()}.\n\nYour marketplace has requested seller input on these claims. We have reviewed them and are ready to provide the necessary documentation.\n\nPlease confirm receipt and share the specific information requested so we can respond within the required timeline.\n\nPortal: https://seller.meesho.com\n\nRegards,\nOps & Finance Team`;}
+    },
+    {
+      id:3, urgency:'warn',
+      title:'ATS courier — 22% undelivered, worsening',
+      subtext:'ATS undelivered rate at 22% and rising for 2 consecutive weeks — highest-risk courier.',
+      value:'₹32K', badge:'Worsening ↑', badgeCls:'warn',
+      source:'Return Delivery Assurance · Gap 1 · ATS',
+      type:'structured',
+      stakes:[
+        { icon:'&#128666;', text:'<strong>8 return shipments (₹32K)</strong> picked up but not delivered to warehouse' },
+        { icon:'&#128200;', text:'Undelivered rate <strong>worsening for 2 consecutive weeks</strong> — now at 22%' },
+      ],
+      trigger:'ATS Logistics shows 8 return pickups with no warehouse delivery confirmation. Oldest dated 20 Feb. Undelivered rate has increased week-on-week for 2 consecutive periods.',
+      rows:[
+        { name:'ATS Logistics Ops', role:'Returns Operations', email:'ops@ats-logistics.com', wa:'919400000005', phone:'919400000005',
+          portal:null,
+          detail:'8 shipments undelivered · ₹32K · Oldest: 20 Feb · 22% undelivered rate · Trend worsening' },
+      ],
+      reason:'<strong>ATS</strong> has had a worsening trend for 2 consecutive weeks. At 22% undelivered they are now your highest-risk courier. Acting now prevents this from becoming a full Gap 1 emergency.',
+      to:'ops@ats-logistics.com', portal:null,
+      subject:'Action Required: 8 Returns Undelivered — ATS',
+      msg(){return`Hi ATS Team,\n\nWe have identified 8 return shipments (₹32K) picked up from customers that have not been delivered to our warehouse as of ${_today()}. The oldest dates to 20 Feb.\n\nYour undelivered rate has reached 22% and has worsened for 2 consecutive weeks. Please investigate the delay and share an expected delivery timeline.\n\nKindly respond at the earliest.\n\nRegards,\nOps & Finance Team`;}
+    },
+    {
+      id:4, urgency:'ok',
+      title:'Reconcile ₹13.2L approved Amazon claims',
+      subtext:'35 Bad Return claims approved by Amazon. Credit notes pending — reconcile before month close.',
+      value:'₹13.2L', badge:'Housekeeping', badgeCls:'neutral',
+      source:'Active Claims · Bad Returns · Approved',
+      type:'structured',
+      stakes:[
+        { icon:'&#9989;', text:'<strong>35 claims approved</strong> — ₹13.2L owed to you, pending credit note issuance' },
+        { icon:'&#128197;', text:'Month close approaching — <strong>delayed reconciliation</strong> pushes settlement to next cycle' },
+      ],
+      trigger:'35 Bad Return claims approved by Amazon. Credit notes not yet processed or matched against accounts. Settlement will be delayed if not reconciled before month-end.',
+      rows:[
+        { name:'Amazon Finance Team', role:'Seller Payments', email:'seller-payments@amazon.in', wa:'919400000006', phone:'919400000006',
+          portal:'https://sellercentral.amazon.in',
+          detail:'35 claims approved · ₹13.2L · Bad Returns · Credit notes pending · Month close due' },
+      ],
+      reason:'<strong>35 Bad Return claims</strong> have been approved by Amazon. Credit notes are pending settlement — reconciling now ensures the amounts reflect in this month\'s ledger.',
+      to:'seller-payments@amazon.in', portal:'https://sellercentral.amazon.in',
+      subject:'Settlement Request: 35 Approved Bad Return Claims (₹13.2L) — Amazon',
+      msg(){return`Hi Amazon Finance Team,\n\nThis is to confirm that 35 Bad Return claims (₹13.2L) have been approved by your marketplace as of ${_today()}.\n\nWe request you to:\n1. Process the corresponding credit note in the next payment cycle\n2. Share the credit note reference number for our records\n3. Confirm the expected date of ledger reflection\n\nPortal: https://sellercentral.amazon.in\n\nRegards,\nOps & Finance Team`;}
+    },
+    {
+      id:5, urgency:'ok',
+      title:'Contact Delhivery — 28 returns in transit',
+      subtext:'28 returns still in transit with Delhivery. Trend improving — a check-in locks in the gains.',
+      value:'₹96.4K', badge:'Improving ↓', badgeCls:'ok',
+      source:'Return Delivery Assurance · Gap 1 · Delhivery',
+      type:'structured',
+      stakes:[
+        { icon:'&#128230;', text:'<strong>28 returns (₹96.4K)</strong> still in transit — not yet confirmed at warehouse' },
+        { icon:'&#9989;', text:'Trend is <strong>improving</strong> — a check-in now reinforces the positive momentum' },
+      ],
+      trigger:'28 return shipments with Delhivery are in-transit with no warehouse delivery confirmation. Average transit time is 5 days. Oldest dated 21 Feb. Performance week-on-week is improving.',
+      rows:[
+        { name:'Delhivery Returns Ops', role:'Returns and Logistics', email:'ops-returns@delhivery.com', wa:'919400000007', phone:'919400000007',
+          portal:null,
+          detail:'28 shipments in transit · ₹96.4K · Oldest: 21 Feb · Avg transit 5 days · Trend improving' },
+      ],
+      reason:'Delhivery is your largest Gap 1 contributor but the trend is <strong>improving</strong>. A check-in maintains momentum and confirms the 28 items still in transit will arrive this week.',
+      to:'ops-returns@delhivery.com', portal:null,
+      subject:'Transit Update: 28 Returns In Transit — Delhivery',
+      msg(){return`Hi Delhivery Team,\n\nWe have 28 return shipments (₹96.4K) currently in transit that have not yet been delivered to our warehouse as of ${_today()}. The oldest dates to 21 Feb — average transit time is 5 days.\n\nCould you please confirm the expected delivery timeline? We note your performance has been improving week-on-week and appreciate your continued cooperation.\n\nKindly respond at the earliest.\n\nRegards,\nOps & Finance Team`;}
+    },
+  ];
+
+  /* ── State ── */
+  let copActioned      = new Set();
+  let copSnoozed       = new Set();
+  let copSelectedId    = null;
+  let copMsgOpen       = new Set();
+  let copSideArchOpen  = false;   /* sidebar archive toggle */
+  let copRailArchOpen  = false;   /* flyout rail archive toggle */
+
+  function copIsArchived(id){ return copActioned.has(id) || copSnoozed.has(id); }
+  function copActiveTasks()  { return COP_TASKS.filter(t => !copIsArchived(t.id)); }
+  function copArchivedTasks(){ return COP_TASKS.filter(t =>  copIsArchived(t.id)); }
+
+  /* ── Sidebar render ── */
+  function copRenderSidebar() {
+    const active   = copActiveTasks();
+    const archived = copArchivedTasks();
+    const critN    = active.filter(t => t.urgency === 'critical').length;
+
+    const chip = document.getElementById('cop-chip');
+    if (critN > 0)       { chip.textContent = critN + ' critical'; chip.className = 'cop-chip has-critical'; }
+    else if (active.length){ chip.textContent = active.length + ' pending'; chip.className = 'cop-chip'; }
+    else                 { chip.textContent = 'all clear'; chip.className = 'cop-chip'; }
+
+    const activeHtml = active.map(t => `
+      <div class="cop-card urg-${t.urgency}" onclick="copOpenFlyout(${t.id})">
+        <div class="cop-card-stripe"></div>
+        <div class="cop-card-body">
+          <div class="cop-card-header">
+            <span class="cop-card-title">${t.title}</span>
+            <span class="cop-card-value">${t.value}</span>
+          </div>
+          ${t.subtext ? `<div class="cop-card-subtext">${t.subtext}</div>` : ''}
+          <div class="cop-card-footer">
+            <span class="cop-card-badge">${t.badge}</span>
+          </div>
+        </div>
+      </div>`).join('');
+
+    const archHtml = archived.length ? `
+      <div class="cop-archive-toggle${copSideArchOpen?' open':''}" onclick="copToggleSideArch()">
+        <span class="cop-archive-caret">▶</span>
+        Archived · ${archived.length}
+      </div>
+      <div class="cop-archive-list${copSideArchOpen?' open':''}">
+        ${archived.map(t=>`
+          <div class="cop-card urg-${t.urgency} archived">
+            <div class="cop-card-stripe"></div>
+            <div class="cop-card-body">
+              <div class="cop-card-header">
+                <span class="cop-card-title">${t.title}</span>
+                <span class="cop-card-value">${t.value}</span>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>` : '';
+
+    document.getElementById('cop-cards').innerHTML = activeHtml + archHtml;
+  }
+
+  /* ── Flyout open / close ── */
+  function copOpenFlyout(id) {
+    copSelectedId = id;
+    document.getElementById('cop-overlay').classList.add('open');
+    document.getElementById('cop-flyout').classList.add('open');
+    copRenderRail();
+    copRenderDetail();
+    copUpdateFlyoutSub();
+  }
+
+  function copCloseFlyout() {
+    document.getElementById('cop-overlay').classList.remove('open');
+    document.getElementById('cop-flyout').classList.remove('open');
+    document.body.style.overflow = '';
+    copSelectedId = null;
+    const rail = document.getElementById('cop-rail');
+    if (rail) rail.classList.remove('mob-open');
+  }
+  function copMobShowRail() {
+    document.getElementById('cop-rail').classList.add('mob-open');
+  }
+  function copMobHideRail() {
+    document.getElementById('cop-rail').classList.remove('mob-open');
+  }
+
+  function copUpdateFlyoutSub() {
+    const n = copActiveTasks().length;
+    document.getElementById('cop-fly-sub').textContent =
+      n > 0 ? n + ' active alert' + (n===1?'':'s') : 'All clear';
+  }
+
+  /* ── Rail render ── */
+  function copRenderRail() {
+    const active   = copActiveTasks();
+    const archived = copArchivedTasks();
+
+    const activeHtml = active.map(t => `
+      <div class="cop-rail-item urg-${t.urgency}${copSelectedId===t.id?' selected':''}"
+           onclick="copSelectAlert(${t.id})">
+        <div class="cop-rail-stripe"></div>
+        <div class="cop-rail-body">
+          <div class="cop-rail-title">${t.title}</div>
+          <div class="cop-rail-val">${t.value}</div>
+        </div>
+      </div>`).join('');
+
+    const archHtml = archived.length ? `
+      <div class="cop-rail-archive-toggle${copRailArchOpen?' open':''}" onclick="copToggleRailArch()">
+        <span class="cop-rail-archive-caret">▶</span>
+        Archived · ${archived.length}
+      </div>
+      <div class="cop-rail-archive-list${copRailArchOpen?' open':''}">
+        ${archived.map(t=>`
+          <div class="cop-rail-item urg-${t.urgency} archived${copSelectedId===t.id?' selected':''}"
+               onclick="copSelectAlert(${t.id})">
+            <div class="cop-rail-stripe"></div>
+            <div class="cop-rail-body">
+              <div class="cop-rail-title">${t.title}</div>
+              <div class="cop-rail-val">${t.value}
+                <span style="font-size:9px;font-weight:600;color:#aaa;margin-left:4px;">${copActioned.has(t.id)?'✓ Done':'⏸ Snoozed'}</span>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>` : '';
+
+    document.getElementById('cop-rail-list').innerHTML = activeHtml + archHtml;
+  }
+
+  /* ── Select alert (switch right panel) ── */
+  function copSelectAlert(id) {
+    copSelectedId = id;
+    copRenderRail();
+    copRenderDetail();
+    copMobHideRail(); // on mobile: collapse rail to reveal detail panel
+  }
+
+  /* ── State for structured detail ── */
+  const _slaExpanded = new Set();
+  let _slaView = 'facility';
+
+  /* ── Detail panel render ── */
+  function copRenderDetail() {
+    const t = COP_TASKS.find(t => t.id === copSelectedId);
+    if (!t) return;
+    const archived       = copIsArchived(t.id);
+    const archivedStatus = copActioned.has(t.id) ? '✓ Marked done' : copSnoozed.has(t.id) ? '⏸ Snoozed' : null;
+
+    if (t.type === 'structured')   { _renderStructuredDetail(t, archived, archivedStatus); return; }
+    if (t.type === 'restock_sla')  { _renderRestockSLADetail(t, archived, archivedStatus); return; }
+
+    // ── Legacy layout (fallback) ──────────────────────────────
+    const msgText = t.msg();
+    const msgOpen = copMsgOpen.has(t.id);
+    const portal  = t.portal ? `<a class="cop-dac-btn portal" href="${t.portal}" target="_blank">↗ Portal</a>` : '';
+    document.getElementById('cop-detail-scroll').innerHTML = `
+      <div class="cop-detail-eyebrow">
+        <span class="cop-urgency-dot ${t.urgency}"></span>
+        ${archivedStatus ? `<span style="color:#aaa;">${archivedStatus}</span>` : 'Focus now'}
+      </div>
+      <div class="cop-detail-title">${t.title}</div>
+      <div class="cop-detail-meta">
+        <span class="cop-detail-val">${t.value}</span>
+        <span class="cop-detail-sep">·</span>
+        <span class="cop-detail-badge ${t.badgeCls}">${t.badge}</span>
+        <span class="cop-detail-sep">·</span>
+        <span style="font-size:10px;color:#aaa;">${t.source}</span>
+      </div>
+      <div class="cop-detail-reason">${t.reason}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="cop-dac-label" style="margin-bottom:0;">Action</div>
+        <button class="cop-dac-export" onclick="copExport(${t.id})" title="Export as .txt">⬇ Export</button>
+      </div>
+      <div class="cop-dac-to">To: <strong>${t.to}</strong></div>
+      <div class="cop-dac-msg${msgOpen?' open':''}" id="cop-dac-msg-${t.id}">${msgText}</div>
+      <button class="cop-dac-toggle" onclick="copToggleMsg(${t.id})">${msgOpen?'▲ Collapse':'▼ Expand full message'}</button>
+      <div class="cop-dac-btns">
+        ${portal}
+        <a class="cop-dac-btn mail" href="mailto:${t.to}?subject=${encodeURIComponent(t.subject)}&body=${encodeURIComponent(msgText)}" target="_blank">✉ Send Mail</a>
+        <a class="cop-dac-btn whatsapp" href="https://wa.me/?text=${encodeURIComponent(msgText)}" target="_blank">📲 WhatsApp</a>
+      </div>`;
+    const footer = document.getElementById('cop-detail-footer');
+    footer.innerHTML = archived
+      ? `<button class="cop-dfooter-btn ghost" onclick="copRestore(${t.id})">↩ Restore</button>`
+      : `<button class="cop-dfooter-btn ghost" onclick="copSnooze(${t.id})">Snooze</button>
+         <button class="cop-dfooter-btn primary" onclick="copMarkDone(${t.id})">Mark done ✓</button>`;
+  }
+
+  /* ── Shared structured detail renderer ── */
+  /* ── Restock SLA detail renderer ── */
+  function _renderRestockSLADetail(t, archived, archivedStatus) {
+    const isMobile = window.innerWidth <= 768;
+    const facs     = t.facilities || [];
+    const bulkSubj = encodeURIComponent(t.bulkSubject ? t.bulkSubject() : '');
+    const bulkBody = encodeURIComponent(t.bulkMsg ? t.bulkMsg() : '');
+    const bulkEmail= t.bulkEmail || '';
+    const bulkWA   = t.bulkWA   || '';
+
+    /* cohort expand — includes Oldest Breach */
+    const cohortHtml = (r, key) => {
+      if (!r.cohort) return '';
+      const { d24, d57, d7p } = r.cohort;
+      return `
+        <tr class="sla-cohort-row${_slaExpanded.has(key)?' open':''}" id="sla-cohort-${key}">
+          <td class="sla-cohort-cell" colspan="5">
+            <div class="sla-cohort-inner">
+              <div class="sla-cohort-bucket">
+                <div class="sla-cohort-label d24">2–4 days</div>
+                <div class="sla-cohort-count">${d24.count > 0 ? d24.count : '—'}</div>
+                <div class="sla-cohort-val">${d24.val}</div>
+              </div>
+              <div class="sla-cohort-bucket">
+                <div class="sla-cohort-label d57">5–7 days</div>
+                <div class="sla-cohort-count">${d57.count > 0 ? d57.count : '—'}</div>
+                <div class="sla-cohort-val">${d57.val}</div>
+              </div>
+              <div class="sla-cohort-bucket">
+                <div class="sla-cohort-label d7p">7+ days</div>
+                <div class="sla-cohort-count">${d7p.count > 0 ? d7p.count : '—'}</div>
+                <div class="sla-cohort-val">${d7p.val}</div>
+              </div>
+              <div class="sla-cohort-bucket">
+                <div class="sla-cohort-label" style="color:var(--text-3);">Oldest Breach</div>
+                <div class="sla-cohort-count" style="font-size:var(--t-sm);color:var(--c-red-600);">${r.oldest || '—'}</div>
+              </div>
+            </div>
+          </td>
+        </tr>`;
+    };
+
+    /* inline CTAs */
+    const rowCtaHtml = (r) => {
+      const rowMsg  = encodeURIComponent(`Dear ${r.name},\n\nThis is a formal escalation regarding Restocking SLA Breach at your facility as of ${_today()}.\n\nPlease clear the QC queue and complete restocking of all pending units immediately.\n\nRegards,\nSupply Chain Head`);
+      const rowSubj = encodeURIComponent(`ESCALATION: Restocking SLA Breach — ${r.name}`);
+      const callHtml = isMobile
+        ? `<a class="sla-act-btn call" href="tel:+${r.phone}">Call</a>`
+        : `<span class="sla-act-btn call" title="Call: +${r.phone}" onclick="alert('Call: +${r.phone}')">Call</span>`;
+      return `${callHtml}
+        <a class="sla-act-btn mail" href="mailto:${r.email}?subject=${rowSubj}&body=${rowMsg}">Mail</a>
+        <a class="sla-act-btn wa"   href="https://wa.me/${r.wa}?text=${rowMsg}" target="_blank">WA</a>`;
+    };
+
+    /* table rows */
+    const tableRows = facs.map((r, i) => {
+      const key = `rst-${t.id}-${i}`;
+      const exp = _slaExpanded.has(key);
+      return `
+        <tr class="sla-row${exp?' expanded':''}" onclick="slaToggleRow('${key}')">
+          <td><div class="sla-row-name">
+            <span class="sla-row-caret">&#9658;</span>${r.name}
+          </div></td>
+          <td><div class="rst-sub qc"><span class="rst-sub-count">${r.qc}</span><span class="rst-sub-label">QC</span></div></td>
+          <td><div class="rst-sub good"><span class="rst-sub-count">${r.good}</span><span class="rst-sub-label">Good</span></div></td>
+          <td><div class="rst-sub bad"><span class="rst-sub-count">${r.bad}</span><span class="rst-sub-label">Bad</span></div></td>
+          <td class="sla-row-actions" onclick="event.stopPropagation()">${rowCtaHtml(r)}</td>
+        </tr>
+        ${cohortHtml(r, key)}`;
+    }).join('');
+
+    /* stakes colour */
+    const stakeColor  = 'var(--c-red-50)';
+    const stakeBorder = 'var(--c-red-200)';
+    const stakeText   = 'var(--c-red-700)';
+
+    document.getElementById('cop-detail-scroll').innerHTML = `
+      <div class="cop-detail-eyebrow">
+        <span class="cop-urgency-dot ${t.urgency}"></span>
+        ${archivedStatus ? `<span style="color:#aaa;">${archivedStatus}</span>` : 'Focus now'}
+      </div>
+      <div class="cop-detail-title">${t.title}</div>
+      <div class="cop-detail-meta">
+        <span class="cop-detail-val">${t.value}</span>
+        <span class="cop-detail-sep">·</span>
+        <span class="cop-detail-badge ${t.badgeCls}">${t.badge}</span>
+        <span class="cop-detail-sep">·</span>
+        <span style="font-size:10px;color:#aaa;">${t.source}</span>
+      </div>
+
+      <div class="cop-dac-label">What's at stake</div>
+      <div class="rst-stakes">
+        ${(t.stakes||[]).map(s => `
+          <div class="sla-stake" style="background:${stakeColor};border-color:${stakeBorder}">
+            <div class="sla-stake-icon" style="color:${stakeText}">${s.icon}</div>
+            <div class="sla-stake-text" style="color:${stakeText}">${s.text}</div>
+          </div>`).join('')}
+      </div>
+
+      <div class="cop-dac-label">What triggered this</div>
+      <div class="sla-trigger">${t.trigger}</div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s3);">
+        <div class="cop-dac-label" style="margin-bottom:0;">Breakdown by Facility</div>
+      </div>
+
+      <table class="rst-table sla-table">
+        <thead>
+          <tr>
+            <th>Fulfilment Centre</th>
+            <th class="num">QC Pending</th>
+            <th class="num">Good Restock</th>
+            <th class="num">Bad Restock</th>
+            <th style="text-align:right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+
+      <div class="sla-bulk">
+        <span class="sla-bulk-label">Send escalation</span>
+        <a class="sla-bulk-btn mail" href="mailto:${bulkEmail}?subject=${bulkSubj}&body=${bulkBody}">✉ Email</a>
+        <a class="sla-bulk-btn wa"   href="https://wa.me/${bulkWA}?text=${bulkBody}" target="_blank">📲 WhatsApp</a>
+      </div>`;
+
+    const footer = document.getElementById('cop-detail-footer');
+    footer.innerHTML = archived
+      ? `<button class="cop-dfooter-btn ghost" onclick="copRestore(${t.id})">↩ Restore</button>`
+      : `<button class="cop-dfooter-btn ghost" onclick="copSnooze(${t.id})">⏸ Snooze till tomorrow</button>
+         <button class="cop-dfooter-btn primary" onclick="copMarkDone(${t.id})">Mark done ✓</button>`;
+  }
+
+  /* ── Shared structured detail renderer ── */
+  function _renderStructuredDetail(t, archived, archivedStatus) {
+    const isMobile  = window.innerWidth <= 768;
+    const isSLA     = t.id === 0;  /* SLA task has facility/courier toggle + multi-rows */
+    const rows      = isSLA ? (_slaView === 'facility' ? t.facilities : t.couriers) : t.rows;
+    const msgText   = t.msg ? t.msg() : t.bulkMsg ? t.bulkMsg() : '';
+    const bulkEmail = t.bulkEmail || t.to;
+    const bulkWA    = t.bulkWA    || (rows[0] && rows[0].wa) || '';
+    const bulkSubj  = encodeURIComponent(t.bulkSubject ? t.bulkSubject() : t.subject || '');
+    const bulkBody  = encodeURIComponent(msgText);
+
+    /* cohort expand for a row */
+    const cohortHtml = (r, key) => {
+      if (!r.cohort) return '';
+      const { d35, d610, d10p } = r.cohort;
+      return `
+        <tr class="sla-cohort-row${_slaExpanded.has(key)?' open':''}" id="sla-cohort-${key}">
+          <td class="sla-cohort-cell" colspan="4">
+            <div class="sla-cohort-inner">
+              <div class="sla-cohort-bucket">
+                <div class="sla-cohort-label d35">3–5 days</div>
+                <div class="sla-cohort-count">${d35.count > 0 ? d35.count : '—'}</div>
+                <div class="sla-cohort-val">${d35.val}</div>
+              </div>
+              <div class="sla-cohort-bucket">
+                <div class="sla-cohort-label d610">6–10 days</div>
+                <div class="sla-cohort-count">${d610.count > 0 ? d610.count : '—'}</div>
+                <div class="sla-cohort-val">${d610.val}</div>
+              </div>
+              <div class="sla-cohort-bucket">
+                <div class="sla-cohort-label d10p">10+ days</div>
+                <div class="sla-cohort-count">${d10p.count > 0 ? d10p.count : '—'}</div>
+                <div class="sla-cohort-val">${d10p.val}</div>
+              </div>
+            </div>
+          </td>
+        </tr>`;
+    };
+
+    /* detail expand for single-contact rows */
+    const detailHtml = (r, key) => {
+      if (!r.detail) return '';
+      return `
+        <tr class="sla-detail-row${_slaExpanded.has(key)?' open':''}" id="sla-detail-${key}">
+          <td class="sla-detail-cell" colspan="4">
+            <div class="sla-detail-box">${r.detail}</div>
+          </td>
+        </tr>`;
+    };
+
+    /* inline row CTAs */
+    const rowCtaHtml = (r) => {
+      const rowMsg  = encodeURIComponent(`Dear ${r.name},\n\nThis is a formal escalation regarding ${t.title} as of ${_today()}.\n\nPlease take immediate action and respond at the earliest.\n\nRegards,\nSupply Chain Head`);
+      const rowSubj = encodeURIComponent(`ESCALATION: ${t.title}`);
+      const callHtml = isMobile
+        ? `<a class="sla-act-btn call" href="tel:+${r.phone}">Call</a>`
+        : `<span class="sla-act-btn call" title="Call: +${r.phone}" onclick="alert('Call: +${r.phone}')">Call</span>`;
+      const portalHtml = r.portal
+        ? `<a class="sla-act-btn" href="${r.portal}" target="_blank">Portal</a>`
+        : '';
+      return `${callHtml}
+        <a class="sla-act-btn mail" href="mailto:${r.email}?subject=${rowSubj}&body=${rowMsg}">Mail</a>
+        <a class="sla-act-btn wa"   href="https://wa.me/${r.wa}?text=${rowMsg}" target="_blank">WA</a>
+        ${portalHtml}`;
+    };
+
+    /* table rows */
+    const colHeader = isSLA
+      ? (_slaView === 'facility' ? 'Fulfilment Centre' : 'Courier Partner')
+      : 'Contact';
+    const tableRows = rows.map((r, i) => {
+      const key = `${t.id}-${_slaView}-${i}`;
+      const exp = _slaExpanded.has(key);
+      const expandHtml = r.cohort ? cohortHtml(r, key) : detailHtml(r, key);
+      const countCell  = r.count != null
+        ? `<td class="sla-row-count">${r.count}</td>`
+        : `<td class="sla-row-count">—</td>`;
+      return `
+        <tr class="sla-row${exp?' expanded':''}" onclick="slaToggleRow('${key}')">
+          <td><div class="sla-row-name">
+            <span class="sla-row-caret">&#9658;</span>${r.name}
+            ${r.role ? `<span style="font-size:10px;color:var(--text-3);font-weight:400">${r.role}</span>` : ''}
+          </div></td>
+          ${countCell}
+          <td class="sla-row-val">${r.value || r.val || ''}</td>
+          ${isSLA ? `<td class="sla-row-oldest"><span>Oldest</span>${r.oldest || '—'}</td>` : ''}
+          <td class="sla-row-actions" onclick="event.stopPropagation()">${rowCtaHtml(r)}</td>
+        </tr>
+        ${expandHtml}`;
+    }).join('');
+
+    /* stakes box colour by urgency */
+    const stakeColor = t.urgency === 'critical' ? 'var(--c-red-50)' : t.urgency === 'warn' ? '#fffbeb' : '#f0fdf4';
+    const stakeBorder= t.urgency === 'critical' ? 'var(--c-red-200)' : t.urgency === 'warn' ? '#fde68a' : '#bbf7d0';
+    const stakeText  = t.urgency === 'critical' ? 'var(--c-red-700)' : t.urgency === 'warn' ? '#92400e' : '#166534';
+
+    document.getElementById('cop-detail-scroll').innerHTML = `
+      <div class="cop-detail-eyebrow">
+        <span class="cop-urgency-dot ${t.urgency}"></span>
+        ${archivedStatus ? `<span style="color:#aaa;">${archivedStatus}</span>` : 'Focus now'}
+      </div>
+      <div class="cop-detail-title">${t.title}</div>
+      <div class="cop-detail-meta">
+        <span class="cop-detail-val">${t.value}</span>
+        <span class="cop-detail-sep">·</span>
+        <span class="cop-detail-badge ${t.badgeCls}">${t.badge}</span>
+        <span class="cop-detail-sep">·</span>
+        <span style="font-size:10px;color:#aaa;">${t.source}</span>
+      </div>
+
+      <div class="cop-dac-label">What's at stake</div>
+      <div class="sla-stakes">
+        ${(t.stakes||[]).map(s => `
+          <div class="sla-stake" style="background:${stakeColor};border-color:${stakeBorder}">
+            <div class="sla-stake-icon" style="color:${stakeText}">${s.icon}</div>
+            <div class="sla-stake-text" style="color:${stakeText}">${s.text}</div>
+          </div>`).join('')}
+      </div>
+
+      <div class="cop-dac-label">What triggered this</div>
+      <div class="sla-trigger">${t.trigger}</div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s3);">
+        <div class="cop-dac-label" style="margin-bottom:0;">Breakdown</div>
+        ${isSLA ? `<div class="sla-toggle">
+          <button class="sla-toggle-btn${_slaView==='facility'?' active':''}" onclick="slaSetView('facility')">Facility</button>
+          <button class="sla-toggle-btn${_slaView==='courier'?' active':''}" onclick="slaSetView('courier')">Courier</button>
+        </div>` : ''}
+      </div>
+
+      <table class="sla-table">
+        <thead>
+          <tr>
+            <th>${colHeader}</th>
+            <th style="text-align:center;">${isSLA ? 'Breached' : 'Detail'}</th>
+            <th>Value</th>
+            ${isSLA ? '<th>Oldest Breach</th>' : ''}
+            <th style="text-align:right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+
+      <div class="sla-bulk">
+        <span class="sla-bulk-label">Send escalation</span>
+        <a class="sla-bulk-btn mail" href="mailto:${bulkEmail}?subject=${bulkSubj}&body=${bulkBody}">✉ Email</a>
+        <a class="sla-bulk-btn wa"   href="https://wa.me/${bulkWA}?text=${bulkBody}" target="_blank">📲 WhatsApp</a>
+      </div>`;
+
+    const footer = document.getElementById('cop-detail-footer');
+    footer.innerHTML = archived
+      ? `<button class="cop-dfooter-btn ghost" onclick="copRestore(${t.id})">↩ Restore</button>`
+      : `<button class="cop-dfooter-btn ghost" onclick="copSnooze(${t.id})">⏸ Snooze till tomorrow</button>
+         <button class="cop-dfooter-btn primary" onclick="copMarkDone(${t.id})">Mark done ✓</button>`;
+  }
+
+  function slaToggleRow(key) {
+    _slaExpanded.has(key) ? _slaExpanded.delete(key) : _slaExpanded.add(key);
+    copRenderDetail();
+  }
+
+  function slaSetView(view) {
+    _slaView = view;
+    _slaExpanded.clear();
+    copRenderDetail();
+  }
+
+  /* ── Export alert as .txt ── */
+  function copExport(id) {
+    const t = COP_TASKS.find(t => t.id === id);
+    if (!t) return;
+    const status = copActioned.has(id) ? 'Marked Done' : copSnoozed.has(id) ? 'Snoozed' : 'Active';
+    const content = [
+      '='.repeat(60),
+      'COPILOT ALERT EXPORT',
+      '='.repeat(60),
+      '',
+      'Alert   : ' + t.title,
+      'Value   : ' + t.value,
+      'Badge   : ' + t.badge,
+      'Source  : ' + t.source,
+      'Status  : ' + status,
+      'To      : ' + t.to,
+      'Subject : ' + t.subject,
+      '',
+      '-'.repeat(60),
+      'WHY THIS ALERT',
+      '-'.repeat(60),
+      t.reason.replace(/<[^>]+>/g, ''),
+      '',
+      '-'.repeat(60),
+      'MESSAGE',
+      '-'.repeat(60),
+      t.msg(),
+      '',
+      '='.repeat(60),
+      'Exported: ' + new Date().toLocaleString('en-IN'),
+    ].join('\n');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'alert-' + t.title.substring(0,30).replace(/[^a-z0-9]/gi,'-').toLowerCase() + '.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  /* ── Actions ── */
+  function copToggleMsg(id) {
+    copMsgOpen.has(id) ? copMsgOpen.delete(id) : copMsgOpen.add(id);
+    copRenderDetail();
+  }
+
+  /* After archiving, move selection to the next active task.
+     If none remain, keep showing the archived item read-only. */
+  function copAutoAdvance() {
+    const remaining = copActiveTasks();
+    if (remaining.length > 0) copSelectedId = remaining[0].id;
+  }
+
+  function copMarkDone(id) {
+    copActioned.add(id);
+    copSnoozed.delete(id);
+    copAutoAdvance();
+    copRenderSidebar();
+    copRenderRail();
+    copRenderDetail();
+    copUpdateFlyoutSub();
+  }
+
+  function copSnooze(id) {
+    copSnoozed.add(id);
+    copActioned.delete(id);
+    copAutoAdvance();
+    copRenderSidebar();
+    copRenderRail();
+    copRenderDetail();
+    copUpdateFlyoutSub();
+  }
+
+  function copRestore(id) {
+    copSnoozed.delete(id);
+    copActioned.delete(id);
+    copRenderSidebar();
+    copRenderRail();
+    copRenderDetail();
+    copUpdateFlyoutSub();
+  }
+
+  function copToggleSideArch() {
+    copSideArchOpen = !copSideArchOpen;
+    copRenderSidebar();
+  }
+
+  function copToggleRailArch() {
+    copRailArchOpen = !copRailArchOpen;
+    copRenderRail();
+  }
+
+  /* ── Init ── */
+  copRenderSidebar();
+
+  /* Init */
+  rdaRenderGaps();
+
+  /* ═══════════════════════════════════════════════════════
+     SHARED FLYOUT ENGINE — action-loop pattern for all widgets
+     ═══════════════════════════════════════════════════════ */
+
+  let flyoutLang    = 'en';
+  let flyoutContext = {};
+
+  /* ── Action-loop state: persists across flyout opens ── */
+  const _acActioned = new Set();   /* key → 'done' */
+  const _acSnoozed  = new Set();   /* key → 'snoozed' */
+  const _msgRegistry = {};
+
+  function acIsArchived(key) { return _acActioned.has(key) || _acSnoozed.has(key); }
+  function acStatus(key)     { return _acActioned.has(key) ? 'done' : _acSnoozed.has(key) ? 'snoozed' : null; }
+
+  function acMarkDone(key) {
+    _acActioned.add(key); _acSnoozed.delete(key);
+    _reRenderFlyoutBody();
+  }
+  function acSnooze(key) {
+    _acSnoozed.add(key); _acActioned.delete(key);
+    _reRenderFlyoutBody();
+  }
+  function acRestore(key) {
+    _acActioned.delete(key); _acSnoozed.delete(key);
+    _reRenderFlyoutBody();
+  }
+  function acMarkDoneAfterAction(key) {
+    setTimeout(() => acMarkDone(key), 800);
+  }
+
+  function _reRenderFlyoutBody() {
+    if (flyoutContext.rerender) flyoutContext.rerender();
+  }
+
+  function flyoutSetLang(lang) {
+    flyoutLang = lang;
+    document.getElementById('flyout-lang-en').classList.toggle('active', lang === 'en');
+    document.getElementById('flyout-lang-hi').classList.toggle('active', lang === 'hi');
+    if (flyoutContext.rerender) flyoutContext.rerender();
+  }
+
+  function sharedToggleMsg(id, el, msgFn) {
+    const box = document.getElementById(id);
+    const expanded = box.classList.toggle('expanded');
+    box.textContent = expanded ? msgFn() : msgFn().substring(0, 160) + '…';
+    el.textContent  = expanded ? '▲ Hide message' : '▼ Show full message';
+  }
+
+  function sharedCopyLink(param, val) {
+    const url = window.location.href.split('?')[0] + '?' + param + '=' + encodeURIComponent(val);
+    navigator.clipboard.writeText(url).catch(() => {});
+    sharedShowToast('Link copied ✓');
+  }
+
+  function sharedShowToast(msg) {
+    const t = document.getElementById('shared-toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2600);
+  }
+
+  function callMsg(id) { return _msgRegistry[id](); }
+
+  /* ── Core row renderer with action-loop footer ── */
+  function renderAcRow(key, name, count, value, meta, badgeHtml, msgFn, actions) {
+    _msgRegistry[key] = msgFn;
+    const preview  = msgFn().substring(0, 160) + '…';
+    const archived = acIsArchived(key);
+    const status   = acStatus(key);
+
+    if (archived) {
+      const tag = status === 'done'
+        ? '<span class="ac-row-status-tag done">✓ Done</span>'
+        : '<span class="ac-row-status-tag snoozed">⏸ Snoozed</span>';
+      return `<div class="ac-row actioned" data-key="${key}">
+        <div class="ac-row-top">
+          <div class="ac-name">${name}</div>
+          <div class="ac-stats">
+            <span class="ac-stat-count" style="color:var(--text-3)">${count}</span>
+            <span class="ac-stat-sep">·</span>
+            <span class="ac-stat-val" style="color:var(--text-3)">${value}</span>
+          </div>
+        </div>
+        ${tag}
+        <div class="ac-row-footer">
+          <span style="font-size:var(--t-xs);color:var(--text-3);">Action taken — archived</span>
+          <div class="ac-row-footer-actions">
+            <button class="ac-restore-btn" onclick="acRestore('${key}')">↩ Restore</button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    return `<div class="ac-row" data-key="${key}">
+      <div class="ac-row-top">
+        <div class="ac-name">${name}</div>
+        <div class="ac-stats">
+          <span class="ac-stat-count">${count}</span>
+          <span class="ac-stat-sep">·</span>
+          <span class="ac-stat-val">${value}</span>
+        </div>
+      </div>
+      ${meta ? `<div class="ac-meta">${meta}</div>` : ''}
+      ${badgeHtml || ''}
+      <div class="ac-msg" id="${key}">${preview}</div>
+      <div class="ac-msg-toggle" onclick="sharedToggleMsg('${key}',this,()=>callMsg('${key}'))">▼ Show full message</div>
+      <div class="ac-actions">${actions}</div>
+      <div class="ac-row-footer">
+        <span style="font-size:var(--t-xs);color:var(--text-3);">Close loop after acting above</span>
+        <div class="ac-row-footer-actions">
+          <button class="ac-snooze-btn" onclick="acSnooze('${key}')">Snooze</button>
+          <button class="ac-done-btn"   onclick="acMarkDone('${key}')">Mark done ✓</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* ── Wrap a list of rows with active + archived sections ── */
+  function wrapWithArchive(rows, contextKey) {
+    const active   = rows.filter(r => !acIsArchived(r.key));
+    const archived = rows.filter(r =>  acIsArchived(r.key));
+    const archId   = 'fly-arch-' + contextKey;
+    const archHtml = archived.length ? `
+      <div class="flyout-archive-toggle" id="${archId}-toggle" onclick="flyoutToggleArchive('${archId}')">
+        <span class="flyout-archive-caret">▶</span>
+        Archived · ${archived.length}
+      </div>
+      <div class="flyout-archive-list" id="${archId}-list">
+        ${archived.map(r => renderAcRow(r.key, r.name, r.count, r.value, r.meta, r.badgeHtml, r.msgFn, r.actions)).join('')}
+      </div>` : '';
+    return active.map(r => renderAcRow(r.key, r.name, r.count, r.value, r.meta, r.badgeHtml, r.msgFn, r.actions)).join('') + archHtml;
+  }
+
+  function flyoutToggleArchive(archId) {
+    const toggle = document.getElementById(archId + '-toggle');
+    const list   = document.getElementById(archId + '-list');
+    if (!toggle || !list) return;
+    toggle.classList.toggle('open');
+    list.classList.toggle('open');
+  }
+
+  /* ── shared flyout open/close ── */
+  function openFlyoutPanel(title, badge, badgeCss, sub, subhdr, bodyHtml, noteText) {
+    document.getElementById('flyout-title-text').textContent = title;
+    const b = document.getElementById('flyout-badge');
+    b.textContent = badge; b.style.cssText = badgeCss;
+    document.getElementById('flyout-sub').textContent         = sub;
+    document.getElementById('flyout-subhdr-bar').textContent  = subhdr;
+    document.getElementById('flyout-body').innerHTML           = bodyHtml;
+    document.getElementById('flyout-note').textContent         = noteText;
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('flyout').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeFlyout() {
+    document.getElementById('overlay').classList.remove('open');
+    document.getElementById('flyout').classList.remove('open');
+    document.body.style.overflow = '';
+    flyoutContext = {};
+  }
+
+  /* ══════════════════════════════════════════
+     WIDGET 2 — RESTOCK FLYOUT
+     Grouped by facility, action = nudge ops lead
+     ══════════════════════════════════════════ */
+
+  const RESTOCK_DATA = [
+    { name:'Mumbai Hub',    email:'ops.mumbai@warehouse.com', qcPending:98,  qcPendingVal:'₹9.2L',  pendingRestock:62,  pendingVal:'₹5.9L',  oldest:'26 Feb', sub:'58 units QC-passed but unrestocked · Oldest 26 Feb' },
+    { name:'Delhi NCR',     email:'ops.delhi@warehouse.com',  qcPending:74,  qcPendingVal:'₹7.1L',  pendingRestock:51,  pendingVal:'₹4.8L',  oldest:'27 Feb', sub:'44 units QC-passed but unrestocked · Oldest 27 Feb' },
+    { name:'Bangalore',     email:'ops.blr@warehouse.com',    qcPending:56,  qcPendingVal:'₹5.0L',  pendingRestock:48,  pendingVal:'₹4.5L',  oldest:'28 Feb', sub:'41 units QC-passed but unrestocked · Oldest 28 Feb' },
+  ];
+
+  function restockMsgEn(r) {
+    const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    return `Hi ${r.name} Ops Team,
+
+We are reviewing the restock pendency as of ${today} and need your immediate attention on the following:
+
+• QC Pending: ${r.qcPending} units (${r.qcPendingVal}) — awaiting QC inspection
+• Pending Restock (Good): ${r.pendingRestock} units (${r.pendingVal}) — QC passed, not yet put back on shelf
+• Oldest pending item received: ${r.oldest}
+
+Could you please prioritise clearing the QC queue and executing restocks for the QC-passed units at the earliest? Delays directly impact our inventory availability and revenue.
+
+Please share an updated ETA by end of today.
+
+Regards,
+Ops & Finance Team`;
+  }
+  function restockMsgHi(r) {
+    const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    return `नमस्ते ${r.name} ऑप्स टीम,
+
+${today} तक की रीस्टॉक पेंडेंसी की समीक्षा में निम्नलिखित बिंदुओं पर तत्काल ध्यान देने की आवश्यकता है:
+
+• QC पेंडिंग: ${r.qcPending} यूनिट (${r.qcPendingVal}) — QC निरीक्षण प्रतीक्षित
+• रीस्टॉक पेंडिंग (अच्छे): ${r.pendingRestock} यूनिट (${r.pendingVal}) — QC पास, शेल्फ पर वापस नहीं
+• सबसे पुरानी पेंडिंग आइटम प्राप्ति: ${r.oldest}
+
+कृपया QC क्यू को क्लियर करने और QC-पास यूनिट के लिए रीस्टॉक जल्द से जल्द करने को प्राथमिकता दें।
+
+कृपया आज के अंत तक अपडेटेड ETA साझा करें।
+
+सादर,
+ऑप्स और फाइनेंस टीम`;
+  }
+
+  function openRestockFlyout() {
+    flyoutLang = document.getElementById('flyout-lang-en').classList.contains('active') ? 'en' : 'hi';
+    const renderBody = () => {
+      const rows = RESTOCK_DATA.map((r, i) => {
+        const key   = `rst-${i}`;
+        const msgFn = () => flyoutLang === 'hi' ? restockMsgHi(r) : restockMsgEn(r);
+        const totalPending = r.qcPending + r.pendingRestock;
+        const totalVal     = `~₹${(parseFloat(r.qcPendingVal.replace('₹','').replace('L','')) + parseFloat(r.pendingVal.replace('₹','').replace('L',''))).toFixed(1)}L`;
+        const subject = encodeURIComponent(`Action Required: Restock Pendency at ${r.name} — ${totalPending} units`);
+        const actions = `
+          <a class="ac-btn mail ac-primary" href="mailto:${r.email}?subject=${subject}&body=${encodeURIComponent(msgFn())}" target="_blank" onclick="acMarkDoneAfterAction('${key}')">✉ Send Mail</a>
+          <a class="ac-btn whatsapp" href="https://wa.me/?text=${encodeURIComponent(msgFn())}" target="_blank" onclick="acMarkDoneAfterAction('${key}')">📲 WhatsApp</a>
+          <button class="ac-btn copylink" onclick="sharedCopyLink('facility','${r.name}')">🔗 Copy Link</button>`;
+        return { key, name: r.name, count: `${totalPending} units`, value: totalVal, meta: r.sub, badgeHtml: '', msgFn, actions };
+      });
+      return wrapWithArchive(rows, 'rst');
+    };
+    flyoutContext = { rerender: () => {
+      document.getElementById('flyout-body').innerHTML = renderBody();
+    }};
+    openFlyoutPanel(
+      'Return Restock Monitor', 'Total Pendency', 'background:var(--c-gray-100);color:var(--text-2);',
+      'Pending Restock Items · All Facilities · Last 30 Days',
+      'Facility · Sorted by pendency',
+      renderBody(),
+      `${RESTOCK_DATA.length} facilities with pending action`
+    );
+  }
+
+  /* ══════════════════════════════════════════
+     WIDGET 3 — DISPUTED RETURNS FLYOUT
+     Grouped by dispute type, action = file on portal + escalate
+     ══════════════════════════════════════════ */
+
+  const DISPUTE_DATA = {
+    missing: {
+      label: 'Missing Returns',
+      plat: 'fk',
+      rows: [
+        { name:'Flipkart',  email:'seller-support@flipkart.com', count:'2,100 units', val:'₹2.1L', urgency:'critical', oldest:'18 Feb', portal:'https://seller.flipkart.com/returns', sub:'Oldest dispute: 18 Feb · Avg 12 days unresolved' },
+        { name:'Amazon',    email:'seller-performance@amazon.in', count:'680 units',  val:'₹0.9L', urgency:'active',   oldest:'22 Feb', portal:'https://sellercentral.amazon.in',    sub:'Oldest dispute: 22 Feb · Avg 8 days unresolved' },
+        { name:'Meesho',    email:'seller@meesho.com',            count:'420 units',  val:'₹0.5L', urgency:'new',      oldest:'27 Feb', portal:'https://seller.meesho.com',          sub:'Oldest dispute: 27 Feb · Avg 3 days unresolved' },
+      ]
+    },
+    quality: {
+      label: 'Quality Issues',
+      rows: [
+        { name:'Flipkart',  email:'seller-support@flipkart.com', count:'1,100 units', val:'₹0.9L', urgency:'critical', oldest:'20 Feb', portal:'https://seller.flipkart.com/returns', sub:'Oldest dispute: 20 Feb · Avg 10 days unresolved' },
+        { name:'Myntra',    email:'seller@myntra.com',            count:'580 units',  val:'₹0.6L', urgency:'active',   oldest:'24 Feb', portal:'https://myntra.com/seller',          sub:'Oldest dispute: 24 Feb · Avg 6 days unresolved' },
+      ]
+    },
+    overdue: {
+      label: 'Overdue Returns',
+      rows: [
+        { name:'Amazon',    email:'seller-performance@amazon.in', count:'700 units',  val:'₹0.7L', urgency:'active',   oldest:'21 Feb', portal:'https://sellercentral.amazon.in',    sub:'Oldest dispute: 21 Feb · Avg 9 days unresolved' },
+        { name:'Flipkart',  email:'seller-support@flipkart.com', count:'300 units',  val:'₹0.3L', urgency:'new',      oldest:'28 Feb', portal:'https://seller.flipkart.com/returns', sub:'Oldest dispute: 28 Feb · Avg 2 days unresolved' },
+      ]
+    }
+  };
+
+  const urgencyMeta = {
+    critical:{ label:'🔴 Critical — expires < 7 days', cls:'critical' },
+    active:  { label:'🟡 Active — expiry > 7 days',    cls:'warn'     },
+    new:     { label:'🟢 New — created last 2 days',    cls:'ok'       },
+  };
+
+  function disputeMsgEn(dispType, r) {
+    const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    return `Hi ${r.name} Seller Support Team,
+
+We are writing to formally escalate unresolved return disputes as of ${today}.
+
+Dispute Type: ${dispType}
+Marketplace: ${r.name}
+Items Affected: ${r.count} (${r.val})
+Oldest Unresolved: ${r.oldest}
+
+These disputes have been pending action for an extended period and are directly impacting our financial reconciliation. We request you to:
+
+1. Review and resolve the pending disputes listed on the portal
+2. Provide a written response / status update within 48 hours
+3. For items classified as "${dispType}", please initiate the standard resolution process
+
+You can review the items on the seller portal: ${r.portal}
+
+Failure to respond within 48 hours may require us to escalate to the Marketplace Grievance Cell.
+
+Regards,
+Ops & Finance Team`;
+  }
+  function disputeMsgHi(dispType, r) {
+    const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    return `नमस्ते ${r.name} सेलर सपोर्ट टीम,
+
+${today} तक अनसुलझे रिटर्न विवादों को औपचारिक रूप से एस्केलेट करने के लिए लिख रहे हैं।
+
+विवाद प्रकार: ${dispType}
+मार्केटप्लेस: ${r.name}
+प्रभावित आइटम: ${r.count} (${r.val})
+सबसे पुराना अनसुलझा: ${r.oldest}
+
+ये विवाद लंबे समय से पेंडिंग हैं और हमारे वित्तीय रिकॉन्सिलिएशन को सीधे प्रभावित कर रहे हैं।
+
+48 घंटों में लिखित प्रतिक्रिया / स्टेटस अपडेट प्रदान करें।
+
+सादर,
+ऑप्स और फाइनेंस टीम`;
+  }
+
+  function openDisputedFlyout(urgency, type) {
+    const typeKey   = type || 'missing';
+    const dispGroup = DISPUTE_DATA[typeKey] || DISPUTE_DATA.missing;
+    const urgLabel  = { new:'New', active:'Active', critical:'Critical', all:'All' }[urgency] || 'All';
+    const badgeCss  = urgency==='critical' ? 'background:var(--c-red-50);color:var(--c-red-700);'
+                    : urgency==='new'      ? 'background:var(--c-amber-50);color:var(--c-amber-700);'
+                    :                        'background:var(--c-gray-100);color:var(--text-2);';
+
+    const renderBody = () => {
+      const rows = dispGroup.rows.map((r, i) => {
+        const key   = `dis-${typeKey}-${i}`;
+        const msgFn = () => flyoutLang === 'hi' ? disputeMsgHi(dispGroup.label, r) : disputeMsgEn(dispGroup.label, r);
+        const badge = `<span class="ac-badge ${urgencyMeta[r.urgency]?.cls||'neutral'}">${urgencyMeta[r.urgency]?.label||r.urgency}</span>`;
+        const subject = encodeURIComponent(`Escalation: ${dispGroup.label} — ${r.count} items unresolved (${r.val})`);
+        const actions = `
+          <a class="ac-btn portal ac-primary" href="${r.portal}" target="_blank" onclick="acMarkDoneAfterAction('${key}')">↗ Open ${r.name} Portal</a>
+          <a class="ac-btn mail"      href="mailto:${r.email}?subject=${subject}&body=${encodeURIComponent(msgFn())}" target="_blank" onclick="acMarkDoneAfterAction('${key}')">✉ Send Mail</a>
+          <a class="ac-btn whatsapp"  href="https://wa.me/?text=${encodeURIComponent(msgFn())}" target="_blank" onclick="acMarkDoneAfterAction('${key}')">📲 WhatsApp</a>
+          <button class="ac-btn copylink" onclick="sharedCopyLink('dispute','${typeKey}-${r.name}')">🔗 Copy Link</button>`;
+        return { key, name: r.name, count: r.count, value: r.val, meta: r.sub, badgeHtml: badge, msgFn, actions };
+      });
+      return wrapWithArchive(rows, 'dis-' + typeKey);
+    };
+    flyoutContext = { rerender: () => {
+      document.getElementById('flyout-body').innerHTML = renderBody();
+    }};
+    openFlyoutPanel(
+      dispGroup.label, urgLabel, badgeCss,
+      `Disputed Returns · ${dispGroup.label} · ${urgLabel}`,
+      'Marketplace · Sorted by ₹ impact',
+      renderBody(),
+      `${dispGroup.rows.length} marketplace${dispGroup.rows.length>1?'s':''} with open disputes`
+    );
+  }
+
+  /* ══════════════════════════════════════════
+     WIDGET 4 — CLAIMS FLYOUT
+     Action varies by status: respond / follow-up / appeal / reconcile
+     ══════════════════════════════════════════ */
+
+  const CLAIMS_DATA = {
+    'Missing Returns': {
+      action:   [{ name:'Flipkart',  count:'32 claims', val:'₹12.1L', email:'claims@flipkart.com',          portal:'https://seller.flipkart.com/claims', sub:'Avg response time: 2.3 days · Deadline in 5 days', oldest:'3 Feb' },
+                 { name:'Amazon',    count:'20 claims', val:'₹7.5L',  email:'seller-claims@amazon.in',       portal:'https://sellercentral.amazon.in',    sub:'Avg response time: 1.8 days · Deadline in 8 days', oldest:'5 Feb' }],
+      review:   [{ name:'Flipkart',  count:'84 claims', val:'₹31.7L', email:'claims@flipkart.com',          portal:'https://seller.flipkart.com/claims', sub:'Avg age: 34 days · Oldest: 12 Jan', oldest:'12 Jan' },
+                 { name:'Amazon',    count:'60 claims', val:'₹22.6L', email:'seller-claims@amazon.in',       portal:'https://sellercentral.amazon.in',    sub:'Avg age: 28 days · Oldest: 18 Jan', oldest:'18 Jan' },
+                 { name:'Meesho',    count:'40 claims', val:'₹15.1L', email:'seller@meesho.com',             portal:'https://seller.meesho.com',          sub:'Avg age: 22 days · Oldest: 24 Jan', oldest:'24 Jan' }],
+      rejected: [{ name:'Flipkart',  count:'18 claims', val:'₹6.8L',  email:'claims@flipkart.com',          portal:'https://seller.flipkart.com/claims', sub:'Rejected last 7 days · Appeal window: 15 days', oldest:'24 Feb' },
+                 { name:'Amazon',    count:'10 claims', val:'₹3.8L',  email:'seller-claims@amazon.in',       portal:'https://sellercentral.amazon.in',    sub:'Rejected last 7 days · Appeal window: 30 days', oldest:'22 Feb' }],
+      approved: [{ name:'Flipkart',  count:'41 claims', val:'₹15.5L', email:'finance@flipkart.com',         portal:'https://seller.flipkart.com/payments', sub:'Approved · Pending ledger reconciliation', oldest:'—' },
+                 { name:'Amazon',    count:'30 claims', val:'₹11.3L', email:'seller-payments@amazon.in',     portal:'https://sellercentral.amazon.in',    sub:'Approved · Credit note expected', oldest:'—' }],
+    },
+    'Bad Returns': {
+      action:   [{ name:'Meesho',    count:'28 claims', val:'₹10.6L', email:'seller@meesho.com',             portal:'https://seller.meesho.com',          sub:'Quality claim · Photo evidence required', oldest:'6 Feb' },
+                 { name:'Myntra',    count:'20 claims', val:'₹7.5L',  email:'seller@myntra.com',             portal:'https://myntra.com/seller',          sub:'Quality claim · Deadline in 6 days', oldest:'4 Feb' }],
+      review:   [{ name:'Amazon',    count:'80 claims', val:'₹30.2L', email:'seller-claims@amazon.in',       portal:'https://sellercentral.amazon.in',    sub:'Avg age: 31 days · Oldest: 14 Jan', oldest:'14 Jan' },
+                 { name:'Flipkart',  count:'50 claims', val:'₹18.9L', email:'claims@flipkart.com',          portal:'https://seller.flipkart.com/claims', sub:'Avg age: 27 days · Oldest: 21 Jan', oldest:'21 Jan' },
+                 { name:'Meesho',    count:'37 claims', val:'₹14.0L', email:'seller@meesho.com',             portal:'https://seller.meesho.com',          sub:'Avg age: 19 days · Oldest: 28 Jan', oldest:'28 Jan' }],
+      rejected: [{ name:'Myntra',    count:'12 claims', val:'₹4.5L',  email:'seller@myntra.com',             portal:'https://myntra.com/seller',          sub:'Rejected last 7 days · Appeal window: 10 days', oldest:'23 Feb' },
+                 { name:'Meesho',    count:'9 claims',  val:'₹3.4L',  email:'seller@meesho.com',             portal:'https://seller.meesho.com',          sub:'Rejected last 7 days · No appeal window stated', oldest:'25 Feb' }],
+      approved: [{ name:'Amazon',    count:'35 claims', val:'₹13.2L', email:'seller-payments@amazon.in',     portal:'https://sellercentral.amazon.in',    sub:'Approved · Pending settlement', oldest:'—' },
+                 { name:'Myntra',    count:'24 claims', val:'₹9.1L',  email:'seller@myntra.com',             portal:'https://myntra.com/seller',          sub:'Approved · Credit note expected', oldest:'—' }],
+    },
+    'Delayed Returns': {
+      action:   [{ name:'Amazon',    count:'17 claims', val:'₹6.4L',  email:'seller-claims@amazon.in',       portal:'https://sellercentral.amazon.in',    sub:'Delay claim · SLA breach evidence attached', oldest:'7 Feb' },
+                 { name:'Flipkart',  count:'12 claims', val:'₹4.5L',  email:'claims@flipkart.com',          portal:'https://seller.flipkart.com/claims', sub:'Delay claim · Deadline in 9 days', oldest:'3 Feb' }],
+      review:   [{ name:'Flipkart',  count:'60 claims', val:'₹22.7L', email:'claims@flipkart.com',          portal:'https://seller.flipkart.com/claims', sub:'Avg age: 29 days · Oldest: 17 Jan', oldest:'17 Jan' },
+                 { name:'Amazon',    count:'44 claims', val:'₹16.6L', email:'seller-claims@amazon.in',       portal:'https://sellercentral.amazon.in',    sub:'Avg age: 24 days · Oldest: 23 Jan', oldest:'23 Jan' },
+                 { name:'Meesho',    count:'30 claims', val:'₹11.3L', email:'seller@meesho.com',             portal:'https://seller.meesho.com',          sub:'Avg age: 18 days · Oldest: 1 Feb', oldest:'1 Feb' }],
+      rejected: [{ name:'Flipkart',  count:'10 claims', val:'₹3.8L',  email:'claims@flipkart.com',          portal:'https://seller.flipkart.com/claims', sub:'Rejected last 7 days · Appeal window: 15 days', oldest:'21 Feb' },
+                 { name:'Amazon',    count:'5 claims',  val:'₹1.9L',  email:'seller-claims@amazon.in',       portal:'https://sellercentral.amazon.in',    sub:'Rejected last 7 days · Appeal window: 30 days', oldest:'26 Feb' }],
+      approved: [{ name:'Flipkart',  count:'15 claims', val:'₹5.7L',  email:'finance@flipkart.com',         portal:'https://seller.flipkart.com/payments', sub:'Approved · Pending ledger reconciliation', oldest:'—' },
+                 { name:'Meesho',    count:'11 claims', val:'₹4.1L',  email:'seller@meesho.com',             portal:'https://seller.meesho.com',          sub:'Approved · Credit note expected', oldest:'—' }],
+    },
+  };
+
+  const STATUS_META = {
+    action:   { label:'⚠ Pending Action',    badge:'background:#fffbeb;color:#d97706;', subhdr:'Response requested by marketplace — act now', acBadgeCls:'warn'    },
+    review:   { label:'⏳ Under Review',      badge:'background:#f1f5f9;color:#475569;', subhdr:'Ageing claims — follow up if > 30 days',       acBadgeCls:'neutral' },
+    rejected: { label:'✕ Rejected',           badge:'background:#fff1f2;color:#dc2626;', subhdr:'Appeal within window to recover value',         acBadgeCls:'critical'},
+    approved: { label:'✓ Approved',           badge:'background:#f0fdf4;color:#059669;', subhdr:'Reconcile with accounts — credit expected',     acBadgeCls:'ok'     },
+  };
+
+  function claimMsgEn(claimType, status, r) {
+    const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    if (status === 'action') {
+      return `Hi ${r.name} Claims Team,
+
+We are writing regarding ${r.count} (${r.val}) of "${claimType}" claims that require an immediate response as of ${today}.
+
+Your marketplace has flagged these claims as "Pending Action" — requiring seller input. We have reviewed the claims and are ready to provide the necessary documentation.
+
+Please confirm receipt of this message and share the specific information requested so we can respond within the required timeline.
+
+Portal reference: ${r.portal}
+
+Kindly respond at the earliest to avoid claim expiry.
+
+Regards,
+Ops & Finance Team`;
+    }
+    if (status === 'review') {
+      return `Hi ${r.name} Claims Team,
+
+We are following up on ${r.count} (${r.val}) of "${claimType}" claims currently under review as of ${today}. The oldest claim dates back to ${r.oldest}.
+
+Several of these have been under review for more than 30 days without a resolution update. We request:
+
+1. A status update on each of the flagged claims
+2. If additional information is needed from our side, please specify
+3. An estimated resolution timeline
+
+Please treat this as a formal follow-up escalation.
+
+Portal reference: ${r.portal}
+
+Regards,
+Ops & Finance Team`;
+    }
+    if (status === 'rejected') {
+      return `Hi ${r.name} Claims Team,
+
+We wish to formally appeal the rejection of ${r.count} (${r.val}) "${claimType}" claims that were rejected in the last 7 days.
+
+We believe the rejection is not in line with marketplace policy because the return items were [reason: not received / received in damaged condition / delivered beyond SLA]. We have attached supporting evidence including shipment records, warehouse receipts, and photographic proof.
+
+We request a reconsideration of these claims within the appeal window.
+
+Portal reference: ${r.portal}
+
+Regards,
+Ops & Finance Team`;
+    }
+    if (status === 'approved') {
+      return `Hi ${r.name} Finance Team,
+
+This is to confirm that ${r.count} (${r.val}) of "${claimType}" claims have been approved by your marketplace.
+
+We request you to:
+1. Process the corresponding credit note / settlement in the next payment cycle
+2. Share the credit note reference number for our records
+3. Confirm the expected date of ledger reflection
+
+Please coordinate with our accounts team to ensure timely reconciliation.
+
+Portal reference: ${r.portal}
+
+Regards,
+Ops & Finance Team`;
+    }
+    return '';
+  }
+
+  function claimMsgHi(claimType, status, r) {
+    const today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    if (status === 'action') {
+      return `नमस्ते ${r.name} क्लेम्स टीम,
+
+${today} तक "${claimType}" के ${r.count} (${r.val}) क्लेम्स के लिए तत्काल प्रतिक्रिया की आवश्यकता है।
+
+इन क्लेम्स को "Pending Action" के रूप में फ्लैग किया गया है। हम आवश्यक दस्तावेज़ प्रदान करने के लिए तैयार हैं। कृपया शीघ्र प्रतिक्रिया दें।
+
+पोर्टल: ${r.portal}
+
+सादर, ऑप्स और फाइनेंस टीम`;
+    }
+    if (status === 'review') {
+      return `नमस्ते ${r.name} क्लेम्स टीम,
+
+"${claimType}" के ${r.count} (${r.val}) क्लेम्स की समीक्षा पर फॉलो-अप कर रहे हैं। सबसे पुराना क्लेम ${r.oldest} का है। कृपया 30+ दिन से पेंडिंग क्लेम्स की स्टेटस अपडेट और अनुमानित समाधान टाइमलाइन साझा करें।
+
+सादर, ऑप्स और फाइनेंस टीम`;
+    }
+    if (status === 'rejected') {
+      return `नमस्ते ${r.name} क्लेम्स टीम,
+
+पिछले 7 दिनों में अस्वीकृत "${claimType}" के ${r.count} (${r.val}) क्लेम्स की अपील के लिए लिख रहे हैं। सहायक साक्ष्य संलग्न है। अपील विंडो के भीतर पुनर्विचार का अनुरोध है।
+
+सादर, ऑप्स और फाइनेंस टीम`;
+    }
+    if (status === 'approved') {
+      return `नमस्ते ${r.name} फाइनेंस टीम,
+
+"${claimType}" के ${r.count} (${r.val}) क्लेम्स अनुमोदित हो गए हैं। कृपया अगले भुगतान चक्र में क्रेडिट नोट संसाधित करें और रेफरेंस नंबर साझा करें।
+
+सादर, ऑप्स और फाइनेंस टीम`;
+    }
+    return '';
+  }
+
+  function openClaimFlyout(claimType, status) {
+    const allTypes = ['Missing Returns','Bad Returns','Delayed Returns'];
+    const sm       = STATUS_META[status];
+    const types    = claimType === 'All' ? allTypes : [claimType];
+
+    const renderBody = () => {
+      const ctxKey = (claimType + '-' + status).replace(/\s/g,'');
+      const rows = types.flatMap((ct, ti) => {
+        const dataRows = (CLAIMS_DATA[ct]?.[status]) || [];
+        return dataRows.map((r, i) => {
+          const key   = `clm-${ct.replace(/\s/g,'')}-${status}-${i}`;
+          const msgFn = () => flyoutLang === 'hi' ? claimMsgHi(ct, status, r) : claimMsgEn(ct, status, r);
+          const badge = `<span class="ac-badge ${sm.acBadgeCls}">${sm.label} · ${ct}</span>`;
+          const actionLabel = status==='action' ? 'Respond on Portal' : status==='rejected' ? 'File Appeal' : status==='approved' ? 'Reconcile' : 'Follow Up';
+          const subject = encodeURIComponent(`${actionLabel}: ${ct} — ${r.count} (${r.val}) on ${r.name}`);
+          const actions = `
+            <a class="ac-btn portal ac-primary" href="${r.portal}" target="_blank" onclick="acMarkDoneAfterAction('${key}')">↗ ${actionLabel} on ${r.name}</a>
+            <a class="ac-btn ${status==='rejected'?'appeal':'mail'}" href="mailto:${r.email}?subject=${subject}&body=${encodeURIComponent(msgFn())}" target="_blank" onclick="acMarkDoneAfterAction('${key}')">✉ ${status==='rejected'?'Send Appeal':'Send Mail'}</a>
+            <a class="ac-btn whatsapp" href="https://wa.me/?text=${encodeURIComponent(msgFn())}" target="_blank" onclick="acMarkDoneAfterAction('${key}')">📲 WhatsApp</a>
+            <button class="ac-btn copylink" onclick="sharedCopyLink('claim','${ct}-${r.name}')">🔗 Copy Link</button>`;
+          return { key, name: r.name, count: r.count, value: r.val, meta: r.sub, badgeHtml: badge, msgFn, actions };
+        });
+      });
+      return wrapWithArchive(rows, ctxKey);
+    };
+
+    const totalRows = types.reduce((n,ct) => n + ((CLAIMS_DATA[ct]?.[status])?.length||0), 0);
+    flyoutContext = { rerender: () => {
+      document.getElementById('flyout-body').innerHTML = renderBody();
+    }};
+    openFlyoutPanel(
+      claimType === 'All' ? sm.label : claimType,
+      sm.label, sm.badge,
+      `Active Claim Monitor · ${claimType === 'All' ? 'All Types' : claimType} · ${sm.label}`,
+      sm.subhdr,
+      renderBody(),
+      `${totalRows} marketplace${totalRows>1?'s':''} with items to action`
+    );
+  }
+
+  function exportCSV() { sharedShowToast('Export ready — CSV downloaded'); }
+
+  document.addEventListener('keydown', e => { if (e.key==='Escape') closeFlyout(); });
+
+  function scrollToWidget(id) {
+    document.getElementById(id)?.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+</script>
+</body>
+</html>
