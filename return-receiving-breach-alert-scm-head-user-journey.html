@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Journey — Returns Receiving SLA Breach</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #F4F1EA; font-family: 'Plus Jakarta Sans', sans-serif; padding: 48px 40px 80px; color: #0F1117; }
+  .page { max-width: 880px; margin: 0 auto; }
+
+  .header { margin-bottom: 48px; }
+  .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #E8450A; margin-bottom: 8px; }
+  .header h1 { font-size: 28px; font-weight: 800; color: #0F1117; }
+  .header p { font-size: 13px; color: #888; margin-top: 6px; }
+
+  .flow { display: flex; flex-direction: column; }
+
+  .phase-label { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #aaa; margin-bottom: 10px; margin-top: 32px; padding-left: 4px; }
+  .phase-label:first-child { margin-top: 0; }
+
+  /* Step cards */
+  .step { background: #fff; border: 1.5px solid #E0DBD0; border-radius: 12px; padding: 16px 18px 18px; }
+  .step.dark  { background: #0F1117; border-color: #0F1117; }
+  .step.blue  { background: #EBF2FF; border-color: #B0C8F8; }
+  .step.green { background: #E6F4F1; border-color: #A0D8D0; }
+  .step.amber { background: #FEF6E4; border-color: #F5D98A; }
+
+  .step-num { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #bbb; margin-bottom: 4px; }
+  .step.dark  .step-num { color: #E8450A; }
+  .step.blue  .step-num { color: #2A5EA0; }
+  .step.green .step-num { color: #0A7C6E; }
+  .step.amber .step-num { color: #A07000; }
+
+  .step-title { font-size: 14px; font-weight: 800; line-height: 1.3; margin-bottom: 6px; color: #0F1117; }
+  .step.dark  .step-title { color: #fff; }
+  .step.blue  .step-title { color: #1A3A7A; }
+  .step.green .step-title { color: #0A4A42; }
+  .step.amber .step-title { color: #7A4A00; }
+
+  .step-desc { font-size: 12px; line-height: 1.65; color: #666; }
+  .step.dark  .step-desc { color: #7A8499; }
+  .step.blue  .step-desc { color: #3A5A8A; }
+  .step.green .step-desc { color: #3A8A7A; }
+  .step.amber .step-desc { color: #7A5A10; }
+
+  /* Role tags */
+  .tag { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 20px; margin-bottom: 8px; }
+  .tag-user     { background: #FEF6E4; color: #A07000; }
+  .tag-system   { background: #E0F4F0; color: #0A7C6E; }
+  .tag-complete { background: #E8F0FF; color: #2A5EA0; }
+  .tag-deferred { background: #F0F0F0; color: #666; }
+
+  /* Connector arrow */
+  .arrow { display: flex; flex-direction: column; align-items: center; height: 36px; }
+  .arrow-line { width: 2px; flex: 1; background: #C0B8A8; }
+  .arrow-head { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid #C0B8A8; }
+
+  /* Decision node */
+  .decision { background: #0F1117; border: 2px solid #E8450A; border-radius: 12px; padding: 14px 24px; text-align: center; max-width: 420px; margin: 0 auto; width: 100%; }
+  .decision .d-label { font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #E8450A; margin-bottom: 4px; }
+  .decision .d-q { font-size: 13px; font-weight: 700; color: #fff; }
+
+  /* Branches */
+  .branch-row { display: flex; gap: 16px; }
+  .branch-col { flex: 1; display: flex; flex-direction: column; align-items: center; }
+  .branch-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px; }
+  .bt-blue   { background: #EBF2FF; color: #2A5EA0; }
+  .bt-amber  { background: #FEF6E4; color: #A07000; }
+  .bt-green  { background: #E6F4F1; color: #0A7C6E; }
+  .bt-muted  { background: #F0F0F0; color: #666; }
+
+  /* Badges */
+  .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+  .b-crit  { background: #FDEEE8; color: #C43B0A; }
+  .b-blue  { background: #EBF2FF; color: #2A5EA0; }
+  .b-green { background: #E6F4F1; color: #0A7C6E; }
+  .b-amber { background: #FEF6E4; color: #A07000; }
+  .b-dark  { background: #0F1117; color: #fff; }
+  .b-muted { background: #F0F0F0; color: #666; }
+
+  /* Sub-items */
+  .sub-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .sub-item { display: flex; align-items: flex-start; gap: 9px; background: rgba(255,255,255,0.55); border-radius: 7px; padding: 8px 10px; border: 1px solid rgba(0,0,0,0.06); }
+  .step.dark  .sub-item { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+  .sub-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; line-height: 1; }
+  .sub-text { font-size: 12px; line-height: 1.55; color: #444; }
+  .step.dark  .sub-text { color: #9AAABB; }
+  .step.blue  .sub-text { color: #3A5A8A; }
+  .step.green .sub-text { color: #2A6A60; }
+  .step.amber .sub-text { color: #7A5A10; }
+  .sub-text strong { font-weight: 700; color: #0F1117; }
+  .step.dark  .sub-text strong { color: #fff; }
+  .step.blue  .sub-text strong { color: #1A3A7A; }
+  .step.green .sub-text strong { color: #0A4A42; }
+  .step.amber .sub-text strong { color: #7A4A00; }
+
+  .optional { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #aaa; background: #F0F0F0; border-radius: 4px; padding: 1px 5px; margin-left: 5px; }
+
+  /* Legend */
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 48px; padding-top: 20px; border-top: 1.5px solid #D8D3C8; align-items: center; }
+  .li { display: flex; align-items: center; gap: 7px; font-size: 11px; color: #666; }
+  .ld { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="eyebrow">Return Recovery Dashboard</div>
+    <h1>User Journey &mdash; Returns Receiving SLA Breach</h1>
+    <p>End-to-end flow from alert discovery to escalation and loop closure. Persona: Supply Chain Head at HQ.</p>
+  </div>
+
+  <div class="flow">
+
+    <!-- PHASE 1 -->
+    <div class="phase-label">Phase 1 &mdash; Entry</div>
+
+    <div class="step">
+      <div class="tag tag-user">User Action</div>
+      <div class="step-num">Step 01</div>
+      <div class="step-title">Supply Chain Head opens the Return Recovery Dashboard</div>
+      <div class="step-desc">Arrives at HQ and opens the dashboard on desktop to monitor warehouse operations and close active leakages &mdash; Return Restocking Delay, Return Receiving Delay, Wrong QC, and others.</div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <!-- PHASE 2 -->
+    <div class="phase-label">Phase 2 &mdash; Alert Discovery</div>
+
+    <div class="step blue">
+      <div class="tag tag-user">User Action</div>
+      <div class="step-num">Step 02</div>
+      <div class="step-title">Spots the SLA Breach alert at the top of the Copilot list</div>
+      <div class="step-desc">The Copilot sidebar surfaces a critical alert at the top of the queue.</div>
+      <div class="sub-list">
+        <div class="sub-item">
+          <div class="sub-icon">&#128308;</div>
+          <div class="sub-text"><strong>Alert title:</strong> Returns Receiving SLA Breach &middot; &#8377;4.57L &nbsp;<span class="badge b-crit" style="vertical-align:middle;font-size:9px;">SLA Breached</span></div>
+        </div>
+        <div class="sub-item">
+          <div class="sub-icon">&#128203;</div>
+          <div class="sub-text"><strong>Subtext:</strong> 234 return shipments across 10 FCs have breached their receiving SLAs</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <!-- PHASE 3 -->
+    <div class="phase-label">Phase 3 &mdash; Investigation</div>
+
+    <div class="step dark">
+      <div class="tag tag-user">User Action</div>
+      <div class="step-num">Step 03</div>
+      <div class="step-title">Clicks the alert &mdash; flyout opens with full detail</div>
+      <div class="step-desc">Curious why &#8377;4.57L is at risk, the user clicks the card. The flyout slides in with three structured sections to read through.</div>
+      <div class="sub-list">
+        <div class="sub-item">
+          <div class="sub-icon">&#9888;&#65039;</div>
+          <div class="sub-text"><strong>What&rsquo;s at stake:</strong> &#8377;4.57L untracked returns exposed to pilferage &middot; SPF claim timeline running since courier delivery date</div>
+        </div>
+        <div class="sub-item">
+          <div class="sub-icon">&#8987;</div>
+          <div class="sub-text"><strong>What triggered this:</strong> Reverse pickups and RTOs found where no manifest or putaway was created within the receiving SLA for respective facilities</div>
+        </div>
+        <div class="sub-item">
+          <div class="sub-icon">&#128230;</div>
+          <div class="sub-text"><strong>Breakdown table:</strong> Toggle between Facility view and Courier view &mdash; breached count, value, oldest breach date, and inline CTAs per row</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <!-- PHASE 4 -->
+    <div class="phase-label">Phase 4 &mdash; Analysis Choice</div>
+
+    <div class="decision">
+      <div class="d-label">Decision Point</div>
+      <div class="d-q">Which breakdown view does the user need?</div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="branch-row">
+      <div class="branch-col">
+        <div class="branch-tag bt-blue">View A &mdash; Facility</div>
+        <div class="step blue" style="width:100%">
+          <div class="tag tag-system">Default View</div>
+          <div class="step-title">FC &times; Breached Count &times; Value &times; Oldest Breach</div>
+          <div class="step-desc">10 rows, one per fulfilment centre.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-icon">&#128197;</div>
+              <div class="sub-text"><strong>Oldest Breach</strong> column shows the date of the oldest unresolved breach per FC &mdash; surfaces which facilities have been breaching the longest</div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-icon">&#128202;</div>
+              <div class="sub-text"><strong>Expand row</strong> for cohort analysis <span class="optional">Optional</span><br>Buckets: 3&ndash;5 days &middot; 6&ndash;10 days &middot; 10+ days (breached only)</div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-icon">&#128222;</div>
+              <div class="sub-text">Inline CTAs: <strong>Call &middot; Mail &middot; WA</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="branch-col">
+        <div class="branch-tag bt-amber">View B &mdash; Courier</div>
+        <div class="step amber" style="width:100%">
+          <div class="tag tag-system">Toggle View</div>
+          <div class="step-title">Courier &times; Breached Count &times; Value &times; Oldest Breach</div>
+          <div class="step-desc">5 rows, one per courier partner.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-icon">&#128197;</div>
+              <div class="sub-text"><strong>Oldest Breach</strong> column shows the date of the oldest unresolved breach per courier</div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-icon">&#128202;</div>
+              <div class="sub-text"><strong>Expand row</strong> for same cohort filtered by that courier<br>Buckets: 3&ndash;5 days &middot; 6&ndash;10 days &middot; 10+ days</div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-icon">&#128222;</div>
+              <div class="sub-text">Inline CTAs: <strong>Call &middot; Mail &middot; WA</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <!-- PHASE 5 -->
+    <div class="phase-label">Phase 5 &mdash; Action</div>
+
+    <div class="decision">
+      <div class="d-label">Decision Point</div>
+      <div class="d-q">Row-level action or bulk escalation for all?</div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="branch-row">
+      <div class="branch-col">
+        <div class="branch-tag bt-blue">Option A &mdash; Row-level</div>
+        <div class="step blue" style="width:100%">
+          <div class="tag tag-user">User Action</div>
+          <div class="step-title">Inline CTAs on each table row</div>
+          <div class="step-desc">Target individual FCs or courier partners directly.</div>
+          <div class="sub-list">
+            <div class="sub-item"><div class="sub-icon">&#128222;</div><div class="sub-text"><strong>Call</strong> &mdash; dialer on mobile, number shown on desktop</div></div>
+            <div class="sub-item"><div class="sub-icon">&#9993;&#65039;</div><div class="sub-text"><strong>Mail</strong> &mdash; pre-drafted escalation per FC or courier</div></div>
+            <div class="sub-item"><div class="sub-icon">&#128242;</div><div class="sub-text"><strong>WA</strong> &mdash; pre-drafted message per FC or courier</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="branch-col">
+        <div class="branch-tag bt-amber">Option B &mdash; Bulk</div>
+        <div class="step amber" style="width:100%">
+          <div class="tag tag-user">User Action</div>
+          <div class="step-title">Panel-level bulk escalation</div>
+          <div class="step-desc">Escalate all 10 FCs simultaneously.</div>
+          <div class="sub-list">
+            <div class="sub-item"><div class="sub-icon">&#9993;&#65039;</div><div class="sub-text"><strong>Email all FCs</strong> &mdash; formal tone, all FCs in body</div></div>
+            <div class="sub-item"><div class="sub-icon">&#128242;</div><div class="sub-text"><strong>WA group</strong> &mdash; harsh escalation tone &middot; summary table (1 row = 1 FC) in message intent</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <!-- PHASE 6 -->
+    <div class="phase-label">Phase 6 &mdash; Close the Loop</div>
+
+    <div class="decision">
+      <div class="d-label">Decision Point</div>
+      <div class="d-q">How does the user close the alert?</div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <div class="branch-row">
+      <div class="branch-col">
+        <div class="branch-tag bt-green">&#10003; Mark Done</div>
+        <div class="step green" style="width:100%">
+          <div class="tag tag-complete">Actioned</div>
+          <div class="step-title">Alert archived as done</div>
+          <div class="step-desc">&#8377;4.57L shown as actioned in progress tracker. Copilot advances to the next critical alert.</div>
+          <div class="badges">
+            <span class="badge b-dark">Alert &rarr; Archived</span>
+            <span class="badge b-green">Value &rarr; Actioned</span>
+          </div>
+        </div>
+      </div>
+      <div class="branch-col">
+        <div class="branch-tag bt-muted">&#9208; Snooze till Tomorrow</div>
+        <div class="step" style="width:100%">
+          <div class="tag tag-deferred">Deferred</div>
+          <div class="step-title">Alert snoozed till tomorrow</div>
+          <div class="step-desc">Moves to archived with snoozed status. Resurfaces at top of Copilot list in the next session.</div>
+          <div class="badges">
+            <span class="badge b-muted">Alert &rarr; Snoozed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+    <!-- END STATE -->
+    <div class="phase-label">End State</div>
+
+    <div class="step green">
+      <div class="tag tag-complete">Complete</div>
+      <div class="step-title">Leakage addressed &mdash; WH ops and courier teams alerted</div>
+      <div class="step-desc">All relevant FC heads and/or courier partners have received a formal escalation via email or WhatsApp. The Supply Chain Head has full visibility into the &#8377;4.57L at risk and has closed the resolution chain on the Return Recovery Dashboard.</div>
+    </div>
+
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="li"><div class="ld" style="background:#fff;border:1.5px solid #D8D3C8"></div>User Action</div>
+    <div class="li"><div class="ld" style="background:#0F1117"></div>Key Moment</div>
+    <div class="li"><div class="ld" style="background:#EBF2FF;border:1.5px solid #B0C8F8"></div>Primary Path</div>
+    <div class="li"><div class="ld" style="background:#FEF6E4;border:1.5px solid #F5D98A"></div>Alternate Path</div>
+    <div class="li"><div class="ld" style="background:#E8450A;border-radius:50%"></div>Decision Point</div>
+    <div class="li"><div class="ld" style="background:#E6F4F1;border:1.5px solid #A0D8D0"></div>Done / End</div>
+    <div class="li" style="margin-left:auto;color:#bbb;font-size:11px;">Return Recovery Dashboard v1 &middot; March 2026</div>
+  </div>
+
+</div>
+</body>
+</html>
